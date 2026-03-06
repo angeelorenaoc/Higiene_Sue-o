@@ -4,7 +4,7 @@
 
 - Angie Paola Jaramillo Ortega
 - Angee Ocampo
-- Daniel
+- Daniel León Danzo
 
 ## 1. Problema y Motivación
 
@@ -42,4 +42,5 @@ El sistema permitirá:
 ## 2. Arquitectura del Sistema
 ## 3. Variables a Medir
 ## 4. Cronograma de Integración del Proyecto 
+
 
