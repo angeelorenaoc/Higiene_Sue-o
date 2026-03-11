@@ -41,6 +41,64 @@ El sistema permitirá:
 
 ## 2. Arquitectura del Sistema
 ## 3. Variables a Medir
-## 4. Cronograma de Integración del Proyecto 
+## 4. Cronograma de Integración del Proyecto
+
+### 4.1 Actividades relacionadas con la Fase 1: Preparación y diseño
+#### 4.1.a. Revisión del estado del arte sobre higiene del sueño y sistemas IoT:
+    Se realizará una revisión bibliográfica sobre la higiene del sueño, los factores ambientales que afectan la calidad del descanso y el impacto de los hábitos nocturnos en la salud. 
+#### 4.1.b. Identificación de requisitos del sistema:
+    Se definirán los requisitos funcionales y no funcionales del sistema, incluyendo las variables a monitorear (temperatura, luminosidad, ruido y movimiento), los requerimientos de conectividad, consumo energético, seguridad de los datos y comodidad del usuario. Esta actividad permitirá establecer las bases para el diseño del sistema.
+#### 4.1.c. Diseño de la arquitectura del sistema:
+    Se elaborará el diseño de la arquitectura general del sistema, integrando los componentes de hardware (sensores, microcontrolador, actuadores, módulos de comunicación) y software (plataforma en la nube, base de datos e interfaz de usuario). Se definirán los protocolos de comunicación y el flujo de datos entre los diferentes módulos.
+#### 4.1.d. Diseño preliminar de la interfaz de usuario:
+    Se identificarán las variables relevantes a visualizar en la interfaz de usuario, así como la interacción con el mismo.
+
+
+### 4.2.Actividades relacionadas con la Fase 2: Integración de hardware y sensores
+#### 4.2.a. Selección y caracterización de sensores:
+    Se realizará una revisión de la documentación técnica de los sensores seleccionados (temperatura, humedad, luminosidad, movimiento y ruido opcional), con el fin de identificar sus rangos de operación, precisión, limitaciones y requerimientos de alimentación. Posteriormente, se efectuarán pruebas experimentales para comprender su comportamiento y validar su idoneidad para el sistema.
+#### 4.2.b. Integración del sistema de hardware:
+    Se integrarán los sensores con el microcontrolador y los actuadores para garantizar la correcta adquisición de datos y la respuesta del sistema. Esta actividad incluirá la verificación de la lectura adecuada de las variables, la sincronización de los datos obtenidos y la validación del funcionamiento de los actuadores.
+#### 4.2.c. Calibración y pruebas de adquisición de datos:
+    Se realizarán pruebas de calibración para garantizar la precisión de las mediciones. Asimismo, se evaluará la adquisición simultánea de datos provenientes de múltiples sensores, verificando la estabilidad del sistema de monitoreo.
+
+### 4.3. Actividades relacionadas con la Fase 3: Conectividad y almacenamiento
+#### 4.3.a. Implementación de la conectividad inalámbrica:
+    Se desarrollarán los mecanismos de conexión del dispositivo a redes Wi-Fi, permitiendo la transmisión de datos hacia una plataforma en la nube o servidor local. Se evaluará la estabilidad de la conexión y los mecanismos de reconexión automática ante fallos.
+#### 4.3.b. Diseño e implementación del protocolo de comunicación:
+    Se definirá la estructura de los mensajes para la transmisión de datos, mediante protocolos como MQTTS. Esta actividad permitirá garantizar la interoperabilidad entre el dispositivo, el servidor local y la interfaz de usuario.
+#### 4.3.c. Implementación de almacenamiento local y sincronización:
+    Se desarrollarán mecanismos de almacenamiento temporal de datos en memoria local para escenarios sin conectividad. Posteriormente, se implementará la sincronización automática de la información una vez se restablezca la conexión, garantizando la integridad de los datos.
+
+### 4.4. Actividades relacionadas con la Fase 4: Interfaz y visualización
+#### 4.4.a. Desarrollo de la interfaz de visualización:
+    Se implementará un panel de control (dashboard) que permite visualizar en tiempo real las variables registradas por el sistema. Esta interfaz facilitará el monitoreo del descanso del usuario.
+#### 4.4.b. Generación de reportes de calidad del sueño:
+    Se diseñarán algoritmos para el análisis de los datos recolectados, orientados a generar reportes sobre la calidad del entorno de sueño. Estos reportes incluirán tendencias y métricas para la evaluación del descanso.
+#### 4.4.c. Implementación de alertas y recomendaciones:
+    Se desarrollará un sistema de notificaciones que proporcione recomendaciones personalizadas al usuario, tales como establecer una rutina regular de sueño, adelantar la hora de la cena y reducir el uso de dispositivos electrónicos antes de dormir, con el propósito de fomentar hábitos de descanso saludables.
+
+### 4.5. Actividades relacionadas con la Fase 5: Integración total y pruebas
+#### 4.5.a. Integración completa del sistema:
+    Se realizará la integración de los módulos de adquisición de datos, conectividad, almacenamiento e interfaz de usuario, verificando la correcta comunicación entre los componentes y el funcionamiento integral del sistema.
+#### 4.5.b. Pruebas de funcionamiento en condiciones reales:
+    Se llevarán a cabo pruebas nocturnas en un entorno controlado, con el fin de evaluar el desempeño del sistema. Se analizará la estabilidad del monitoreo, la precisión de los datos, la respuesta oportuna de los actuadores, y la utilidad de las recomendaciones generadas.
+#### 4.5.c. Corrección de errores y optimización del sistema:
+    Se identificarán y corregirán fallos detectados durante las pruebas, así como posibles mejoras en el consumo energético, la estabilidad del sistema y la experiencia de usuario.
+
+### 4.6. Actividades relacionadas con la Fase 6: Validación y mejoras
+#### 4.6.a. Validación de resultados obtenidos:
+    Se analizarán los datos recopilados para evaluar la efectividad del sistema en la mejora de las condiciones de higiene del sueño. Esta actividad permitirá determinar el cumplimiento de los objetivos propuestos.
+#### 4.6.b. Mejoras en la experiencia de usuario:
+    Se realizarán ajustes en la interfaz y en las recomendaciones generadas, con base en la retroalimentación obtenida durante las pruebas, con el fin de mejorar la usabilidad y aceptación del sistema.
+
+### 4.7. Actividades relacionadas con la Fase 7: Documentación y entrega final
+#### 4.7.a. Documentación técnica del sistema:
+    Se elaborará la documentación técnica del proyecto, incluyendo la descripción de la arquitectura, manual de usuario, así como los detalles de implementación del sistema.
+#### 4.7.b. Análisis de resultados y conclusiones:
+    Se documentarán los resultados obtenidos, evaluando el impacto del sistema propuesto. 
+#### 4.7.c. Preparación de la presentación final:
+    Se desarrollará la presentación que evidencie el funcionamiento del sistema y los resultados alcanzados.
+
 
 
