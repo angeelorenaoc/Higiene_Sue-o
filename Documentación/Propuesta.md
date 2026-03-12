@@ -118,10 +118,10 @@ En la solución propuesta se contempla una interacción máquina a máquina entr
 
 ## 9. Cronograma de Integración del Proyecto
 
-### 9.1 Actividades relacionadas con la Fase 1: Preparación y diseño
+### 9.1 Actividades relacionadas con la Fase 1: Preparación y diseño (13 de febrero - 13 de marzo)
 #### 9.1.a. Revisión del estado del arte sobre higiene del sueño y sistemas IoT:
 Se realizará una revisión bibliográfica sobre la higiene del sueño, los factores ambientales que afectan la calidad del descanso y el impacto de los hábitos nocturnos en la salud. 
-#### 9.1.b. Identificación de requisitos del sistema:
+#### 9.1.b. Identificación de requisitos del sistema :
 Se definirán los requisitos funcionales y no funcionales del sistema, incluyendo las variables a monitorear (temperatura, luminosidad, ruido y movimiento), los requerimientos de conectividad, consumo energético, seguridad de los datos y comodidad del usuario. Esta actividad permitirá establecer las bases para el diseño del sistema.
 #### 9.1.c. Diseño de la arquitectura del sistema:
 Se elaborará el diseño de la arquitectura general del sistema, integrando los componentes de hardware (sensores, microcontrolador, actuadores, módulos de comunicación) y software (base de datos e interfaz de usuario). Se definirán los protocolos de comunicación y el flujo de datos entre los diferentes módulos.
@@ -129,7 +129,7 @@ Se elaborará el diseño de la arquitectura general del sistema, integrando los 
 Se identificarán las variables relevantes a visualizar en la interfaz de usuario, así como la interacción con el mismo.
 
 
-### 9.2.Actividades relacionadas con la Fase 2: Integración de hardware y sensores
+### 9.2.Actividades relacionadas con la Fase 2: Integración de hardware y sensores (13 de marzo - 3 de abril)
 #### 9.2.a. Selección y caracterización de sensores:
 Se realizará una revisión de la documentación técnica de los sensores seleccionados (temperatura, humedad, luminosidad, movimiento y ruido), con el fin de identificar sus rangos de operación, precisión, limitaciones y requerimientos de alimentación. Posteriormente, se efectuarán pruebas experimentales para comprender su comportamiento y validar su idoneidad para el sistema.
 #### 9.2.b. Integración del sistema de hardware:
@@ -137,7 +137,7 @@ Se integrarán los sensores con el microcontrolador y los actuadores para garant
 #### 9.2.c. Calibración y pruebas de adquisición de datos:
 Se realizarán pruebas de calibración para garantizar la precisión de las mediciones. Asimismo, se evaluará la adquisición simultánea de datos provenientes de múltiples sensores, verificando la estabilidad del sistema de monitoreo.
 
-### 9.3. Actividades relacionadas con la Fase 3: Conectividad y almacenamiento
+### 9.3. Actividades relacionadas con la Fase 3: Conectividad y almacenamiento (3 de abril - 17 de abril)
 #### 9.3.a. Implementación de la conectividad inalámbrica:
 Se desarrollarán los mecanismos de conexión del dispositivo a redes Wi-Fi, permitiendo la transmisión de datos hacia una plataforma en la nube o servidor local. Se evaluará la estabilidad de la conexión y los mecanismos de reconexión automática ante fallos.
 #### 9.3.b. Diseño e implementación del protocolo de comunicación:
@@ -145,7 +145,7 @@ Se definirá la estructura de los mensajes para la transmisión de datos, median
 #### 9.3.c. Implementación de almacenamiento local y sincronización:
 Se desarrollarán mecanismos de almacenamiento temporal de datos en memoria local para escenarios sin conectividad. Posteriormente, se implementará la sincronización automática de la información una vez se restablezca la conexión, garantizando la integridad de los datos.
 
-### 9.4. Actividades relacionadas con la Fase 4: Interfaz y visualización
+### 9.4. Actividades relacionadas con la Fase 4: Interfaz y visualización (3 de abril - 24 de abril)
 #### 9.4.a. Desarrollo de la interfaz de visualización:
 Se implementará un panel de control (dashboard) que permite visualizar en tiempo real las variables registradas por el sistema. Esta interfaz facilitará el monitoreo del descanso del usuario.
 #### 9.4.b. Generación de reportes de calidad del sueño:
@@ -153,7 +153,7 @@ Se diseñarán algoritmos para el análisis de los datos recolectados, orientado
 #### 9.4.c. Implementación de alertas y recomendaciones:
 Se desarrollará un sistema de notificaciones que proporcione recomendaciones personalizadas al usuario, tales como establecer una rutina regular de sueño, adelantar la hora de la cena y reducir el uso de dispositivos electrónicos antes de dormir, con el propósito de fomentar hábitos de descanso saludables.
 
-### 9.5. Actividades relacionadas con la Fase 5: Integración total y pruebas
+### 9.5. Actividades relacionadas con la Fase 5: Integración total y pruebas (24 de abril - 15 de mayo)
 #### 9.5.a. Integración completa del sistema:
 Se realizará la integración de los módulos de adquisición de datos, conectividad, almacenamiento e interfaz de usuario, verificando la correcta comunicación entre los componentes y el funcionamiento integral del sistema.
 #### 9.5.b. Pruebas de funcionamiento en condiciones reales:
@@ -161,13 +161,13 @@ Se llevarán a cabo pruebas nocturnas en un entorno controlado, con el fin de ev
 #### 9.5.c. Corrección de errores y optimización del sistema:
 Se identificarán y corregirán fallos detectados durante las pruebas, así como posibles mejoras en el consumo energético, la estabilidad del sistema y la experiencia de usuario.
 
-### 9.6. Actividades relacionadas con la Fase 6: Validación y mejoras
+### 9.6. Actividades relacionadas con la Fase 6: Validación y mejoras (15 de mayo - 29 de mayo)
 #### 9.6.a. Validación de resultados obtenidos:
 Se analizarán los datos recopilados para evaluar la efectividad del sistema en la mejora de las condiciones de higiene del sueño. Esta actividad permitirá determinar el cumplimiento de los objetivos propuestos.
 #### 9.6.b. Mejoras en la experiencia de usuario:
 Se realizarán ajustes en la interfaz y en las recomendaciones generadas, con base en la retroalimentación obtenida durante las pruebas, con el fin de mejorar la usabilidad y aceptación del sistema.
 
-### 9.7. Actividades relacionadas con la Fase 7: Documentación y entrega final
+### 9.7. Actividades relacionadas con la Fase 7: Documentación y entrega final (29 de mayo - 5 de junio)
 #### 9.7.a. Documentación técnica del sistema:
 Se elaborará la documentación técnica del proyecto, incluyendo la descripción de la arquitectura, manual de usuario, así como los detalles de implementación del sistema.
 #### 9.7.b. Análisis de resultados y conclusiones:
