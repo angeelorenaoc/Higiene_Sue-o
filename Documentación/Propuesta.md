@@ -14,7 +14,7 @@ En la actualidad, los trastornos del sueño constituyen un problema de salud pú
 
 Diversos estudios indican que este fenómeno no solo está asociado a condiciones médicas, sino también a factores del estilo de vida y del entorno. Aspectos como el estrés, la ansiedad, los problemas familiares y financieros, así como la exposición constante a aparatos tecnológicos, dificultan la conciliación y el mantenimiento del sueño. A pesar de reconocer estas dificultades, una parte significativa de la población no busca apoyo profesional ni adopta estrategias sistemáticas para mejorar su descanso.
 
-En el contexto colombiano, la situación resulta igualmente preocupante. Se estima que el 47 % de la población presenta insomnio, lo que impacta directamente la memoria, el rendimeiento académico y laboral, y la salud general. Estudios recientes señalan que hasta el 30 % de los accidentes de tránsito pueden estar relacionados con la somnolencia, mientras que los accidentes laborales pueden incrementarse hasta en un 225 % debido a la falta de descanso adecuado. Asimismo, se ha reportado que estos trastornos pueden afectar hasta en un 55 % la productividad laboral, y se encuentran estrechamente vinculados con condiciones como la ansiedad y la depresión.
+En el contexto colombiano, la situación resulta igualmente preocupante. Se estima que el 47 % de la población presenta insomnio, lo que impacta directamente la memoria, el rendimiento académico y laboral, y la salud general. Estudios recientes señalan que hasta el 30 % de los accidentes de tránsito pueden estar relacionados con la somnolencia, mientras que los accidentes laborales pueden incrementarse hasta en un 225 % debido a la falta de descanso adecuado. Asimismo, se ha reportado que estos trastornos pueden afectar hasta en un 55 % la productividad laboral, y se encuentran estrechamente vinculados con condiciones como la ansiedad y la depresión.
 
 Asimismo, los hábitos cotidianos asociados al uso de tecnología influyen negativamente en la calidad del sueño. En Colombia, el 51 % de las personas afirma revisar su teléfono celular antes de dormir, y más del 70 % tiene un televisor en su habitación, lo que incrementa la exposición a luz artificial y estímulos cognitivos durante las horas previas al descanso. Estos factores alteran los ritmos biológicos y dificultan la adaptación a rutinas de sueño saludables.
 
@@ -28,19 +28,82 @@ Se propone el desarrollo de un sistema IoT orientado al monitoreo y apoyo a la h
 
 El sistema permitirá:
 
-- Medir de forma continua variables ambientales como la iluminación, la temperatura, la humedad y la detección de movimiento en la habitación, proporcionando información objetiva sobre el entorno de descanso.
+- Medir de forma continua variables ambientales como la iluminación, la temperatura, la humedad y el nivel de ruido, proporcionando información objetiva sobre el entorno de descanso.
 
-- Automatizar elementos físicos del entorno, tales como el control de cortinas o la activación gradual de iluminación artificial, con el fin de facilitar la ejecución de rutinas asociadas al descanso y al despertar.
+- Automatización del sistema de iluminación del entorno de descanso, el cual influye en la creación y mantenimiento de rutinas adecuadas.
 
-- Registrar información histórica que permita analizar tendencias y comportamientos nocturnos. 
+- Incorporar un sistema de alarma sonora, mediante un buzzer, que permita complementar rutinas de despertar programadas.
 
-###  Escenarios de Aplicación
+- Registrar información histórica de las variables sensadas, permitiendo al usuario visualizar su comportamiento a lo largo del tiempo por medio de un dashboard.
 
+- Generar notificaciones de recomendaciones para el usuario a partir de los datos adquiridos, con el propósito de fomentar hábitos consistentes de higiene del sueño.
 
 ---
 
 ## 2. Arquitectura del Sistema
+El sistema estará compuesto por tres bloques principales: un nodo IoT de adquisición y control, un servidor local y una aplicación móvil. El nodo IoT estará basado en una ESP32-S3, encargada de captar las variables del entorno y controlar el actuador. Esta se conectará por Wi-Fi a una Raspberry Pi, la cual funcionará como servidor local para la recepción, almacenamiento y visualización de los datos. Finalmente, el usuario podrá acceder a la información mediante una aplicación móvil, desde la cual también recibirá notificaciones de recomendaciones relacionadas con su rutina de sueño.
+
+### 2.1. Capa de Percepción
+La capa de percepción estará implementada sobre una ESP32-S3, a la cual se conectarán los sensores y el actuador del sistema. Los elementos contemplados son:
+
+- Sensor de iluminación digital (BH1750), para medir la intensidad lumínica del entorno.
+
+- Sensor digital de temperatura y humedad (DHT11).
+  
+- Sensor de nivel de ruido, para estimar el nivel de sonido ambiente dentro de la habitación.
+
+- Sensor de movimiento(opcional), para detectar momento de incio y terminación del descanso.
+
+- Buzzer para alarma sonora, para generar alertas sonoras programadas que apoyen las rutinas de despertar
+
+- Actuador de iluminación, consistente en una lámpara de encendido gradual que simulará el amanecer.
+
+La ESP32-S3 realizará la lectura periódica de los sensores, aplicará el filtrado correspondiente sobre las variables medidas, empaquetará los datos y los enviará al servidor local.
+
+### 2.2.  Capa de Red
+
+La capa de red estará basada en Wi-Fi como protocolo de comunicación. A través de esta red, la ESP32-S3 transmitirá los datos capturados hacia la Raspberry Pi. La comunicación entre ambos dispositivos se realizará mediante MQTT por túnel TLS, garantizando un intercambio de información seguro dentro de la arquitectura del sistema.
+
+### 2.3. Capa de Aplicación
+
+La capa de aplicación estará alojada en una Raspberry Pi, que actuará como servidor local del sistema. En esta capa se integrarán los siguientes componentes:
+
+- Servidor MQTT, encargado de recibir los datos provenientes del nodo IoT y gestionar la comunicación con los demás módulos del sistema.
+
+- Base de datos, donde se almacenará la información histórica de las variables ambientales medidas.
+
+- Dashboard de visualización, accesible desde la aplicación móvil, para consultar el comportamiento de los sensores.
+
+- Módulo de generación de recomendaciones y notificaciones, encargado de enviar al usuario alertas o sugerencias relacionadas con la higiene del sueño a partir de las condiciones detectadas.
+
+El acceso del usuario al sistema se realizará desde una aplicación móvil, que permitirá visualizar el dashboard y recibir notificaciones.
+
+### 2.4. Interacción máquina a máquina (M2M)
+
+En la solución propuesta se contempla una interacción máquina a máquina entre la ESP32-S3 y la Raspberry Pi. La primera adquiere y transmite los datos del entorno, mientras que la segunda los procesa, almacena y genera acciones automáticas o recomendaciones para el usuario. Adicionalmente, la Raspberry Pi podrá enviar comandos hacia la ESP32-S3 para controlar el comportamiento de la lámpara de simulación de amanecer, de acuerdo con las rutinas configuradas en el sistema.
+
+---
+
 ## 3. Variables a Medir
+
+### 3.1. Variables medidas
+
+- Iluminación ambiental (lux)
+
+- Temperatura ambiente (°C)
+
+- Humedad relativa (%)
+
+- Nivel de ruido ambiental
+
+- Detección de movimiento
+
+### 3.2. Variables controladas
+
+- Intensidad de iluminación de la lámpara
+
+- Activación de alarma sonora mediante buzzer
+
 ## 4. Cronograma de Integración del Proyecto
 
 ### 4.1 Actividades relacionadas con la Fase 1: Preparación y diseño
@@ -99,6 +162,7 @@ Se elaborará la documentación técnica del proyecto, incluyendo la descripció
 Se documentarán los resultados obtenidos, evaluando el impacto del sistema propuesto. 
 #### 4.7.c. Preparación de la presentación final:
 Se desarrollará la presentación que evidencie el funcionamiento del sistema y los resultados alcanzados.
+
 
 
 
