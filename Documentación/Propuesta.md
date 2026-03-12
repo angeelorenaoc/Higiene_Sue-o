@@ -106,6 +106,27 @@ En la solución propuesta se contempla una interacción máquina a máquina entr
 
 ## 7. Especificaciones desde el punto de vista operacional
 
+| Categoría | Implementación en el sistema |
+|----------------------------|---------------------------------------------------------------------------------------------------------------|
+|                            | Los servicios principales del sistema se alojarán en una Raspberry Pi 5, la cual actuará como servidor local  |
+|                            |ejecutando el broker MQTT, el procesamiento de datos y la API de comunicación con la aplicación móvil. El ESP32|
+|  Opciones de servicios     |funcionará como dispositivo de borde encargado de la adquisición de datos de los sensores. La aplicación móvil |
+|                            |se ejecutará en el dispositivo del usuario y permitirá visualizar la información del sistema y recibir         |
+|                            |notificaciones.                                                                                                |
+|----------------------------|---------------------------------------------------------------------------------------------------------------|
+|                            |Almacenamiento local en Raspberry Pi mediante SQLite para almacenamiento, operación offline, histórico y       |
+| Opciones de Almacenamiento |análisis.                                                                                                      |
+|----------------------------|---------------------------------------------------------------------------------------------------------------|
+|                            |El sistema utilizará un ESP32 como dispositivo de adquisición de datos conectado a sensores de temperatura,    |
+|                            |humedad, luminosidad y ruido. Una Raspberry Pi 5 actuará como gateway encargado del procesamiento local y la   |
+|  Opciones de Dispositivos  |gestión de comunicaciones. Además, el sistema integrará un sistema de alarma mediante una bombilla y un        |
+|                            |buzzer.                                                                                                        |
+|----------------------------|---------------------------------------------------------------------------------------------------------------|
+|                            |La aplicación del sistema se ejecutará en el dispositivo móvil del usuario y permitirá visualizar las variables|
+|                            |monitoreadas y recibir recomendaciones relacionadas con la higiene del sueño. La comunicación con el sistema   |
+|  Opciones de Aplicación    |se realizará mediante una API proporcionada por el gateway local de la Raspberry Pi 5.                         |
+|----------------------------|---------------------------------------------------------------------------------------------------------------|
+                    
 ## 8. Integracios de dispositivos y componentes
 [Diagrama_Integracion_Disp_Comp.png]
 
