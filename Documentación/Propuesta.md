@@ -175,6 +175,12 @@ Se documentarán los resultados obtenidos, evaluando el impacto del sistema prop
 #### 9.7.c. Preparación de la presentación final:
 Se desarrollará la presentación que evidencie el funcionamiento del sistema y los resultados alcanzados.
 
+# Referencias
 
+[1] Mayo Clinic Staff, "Consejos para dormir: 6 pasos para dormir mejor," Mayo Clinic, 31 ene. 2025. [En línea]. Disponible en: https://www.mayoclinic.org/es/healthy-lifestyle/adult-health/in-depth/sleep/art-20048379.
 
+[2] American Academy of Sleep Medicine, "Hábitos de sueño saludables," Sleep Education, Apr. 2, 2021. [En línea]. Available: https://sleepeducation.org/healthy-sleep/healthy-sleep-habits/.
 
+[3] National Heart, Lung, and Blood Institute, "Healthy Sleep Habits," NHLBI, National Institutes of Health, Mar. 24, 2022. [En línea]. Available: https://www.nhlbi.nih.gov/health/sleep-deprivation/healthy-sleep-habits.
+
+[4] ResMed, "Encuesta Global del Sueño 2025," ResMed, 2025. [En línea]. Disponible en: https://www.resmed.lat/hubfs/Pesquisa%20de%20sueno%202025-%20ES-%20final.pdf?hsLang=es-mx.
