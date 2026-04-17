@@ -211,6 +211,7 @@ void ip_monitor_task(void *pvParameters)
 //  Main
 void app_main(void)
 {
+
     dht11_init(DHT11_PIN);
     actuadores_init();
     do_calibration = adc_calibration_init();

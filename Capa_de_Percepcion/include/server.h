@@ -10,10 +10,12 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "esp_netif.h"
+#include "driver/gpio.h"
+
 
 #include "esp_http_server.h"
 
-#define WIFI_SSID "SOMOS JD ARIAS TORO"
+#define WIFI_SSID "ANGIE"
 #define WIFI_PASS "1001804091"
 #define WIFI_CONNECTED_BIT BIT0
 

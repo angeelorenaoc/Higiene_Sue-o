@@ -1,4 +1,7 @@
 #include "server.h"
+
+#define PIN GPIO_NUM_21
+
 int band_system = 0;
 EventGroupHandle_t wifi_event_group = NULL;
 esp_netif_t *sta_netif = NULL;
@@ -38,6 +41,15 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
 // ============================
 void wifi_init(void)
 {
+    gpio_config_t io_conf = {
+        .pin_bit_mask = (1ULL << PIN),
+        .mode = GPIO_MODE_OUTPUT,
+        .pull_up_en = GPIO_PULLUP_DISABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE
+    };
+    gpio_config(&io_conf);
+    gpio_set_level(PIN, 1);
     wifi_event_group = xEventGroupCreate();
     esp_netif_init();
     esp_event_loop_create_default();
