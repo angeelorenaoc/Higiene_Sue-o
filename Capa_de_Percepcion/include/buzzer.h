@@ -16,7 +16,7 @@ typedef struct {
 #define BUZZER_DUTY_MAX        1023u
 #define BUZZER_DUTY_50_PERCENT 512u
 
-void buzzer_init(buzzer_t *b);
+void buzzer_init(buzzer_t *b, gpio_num_t pin, uint32_t frequency_hz);
 esp_err_t buzzer_on(buzzer_t *b);
 esp_err_t buzzer_off(buzzer_t *b);
 esp_err_t buzzer_set_frequency(buzzer_t *b, uint32_t frequency_hz);

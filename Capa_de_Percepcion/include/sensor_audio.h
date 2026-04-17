@@ -8,6 +8,6 @@
 
 
 void audio_init(void);
-void audio_process_sample(adc_sample_t sample);
+float audio_process_sample(adc_sample_t sample);
 
 #endif /* SENSOR_AUDIO_H */

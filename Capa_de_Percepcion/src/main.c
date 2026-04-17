@@ -23,12 +23,7 @@ static QueueHandle_t audioQueue;
 static QueueHandle_t lightQueue;
 static QueueHandle_t dht_queue;
 
-buzzer_t buzzer = {
-    .pin = GPIO_NUM_2,
-    .frequency_hz = BUZZER_DEFAULT_FREQ_HZ,
-    .is_on = false,
-};
-
+static buzzer_t buzzer;
 static motor_t motor;
 
 static void taskADC(void *pvParameters)
@@ -54,7 +49,7 @@ static void taskADC(void *pvParameters)
                     if (++decimation_audio >= DECIMATION_AUDIO)
                     {
                         sample.value = p->type2.data;
-                        xQueueSend(audioQueue, &sample, portMAX_DELAY);
+                        xQueueOverwrite(audioQueue, &sample);
                         decimation_audio = 0;
                     }
                 }
@@ -63,7 +58,7 @@ static void taskADC(void *pvParameters)
                     if (++decimation_light >= DECIMATION_LIGHT)
                     {
                         sample.value = p->type2.data;
-                        xQueueSend(lightQueue, &sample, portMAX_DELAY);
+                        xQueueOverwrite(lightQueue, &sample);
                         decimation_light = 0;
                     }
                 }
@@ -84,53 +79,86 @@ static void task_dht(void *arg)
         } else {
             ESP_LOGI(TAG, "DHT11 error: %s", esp_err_to_name(err));
         }
-        RTOS_delay(2000);
+        RTOS_delay(1000);
     }
 }
 
 //  BUZZER TASK
 static void task_buzzer(void *arg)
 {
-    while (1)
+    while(1)
     {
-        buzzer_set_frequency(&buzzer, 2000);
-        buzzer_beep(&buzzer, 200, 150, 3);
-        RTOS_delay(4000);
+        if(band_system)
+        {
+            buzzer_set_frequency(&buzzer, 2000);
+            buzzer_beep(&buzzer, 200, 150, 3);
+            RTOS_delay(4000);
 
-        buzzer_set_frequency(&buzzer, 2800);
-        buzzer_beep(&buzzer, 100, 80, 2);
-        RTOS_delay(4000);
+            buzzer_set_frequency(&buzzer, 2800);
+            buzzer_beep(&buzzer, 100, 80, 2);
+            RTOS_delay(4000);
+        }
+        else
+        {
+            //apagar buzzer
+            buzzer_set_frequency(&buzzer, 0);
+            buzzer_off(&buzzer);
+            RTOS_delay(4000);
+        }
     }
 }
  
 //  MOTOR TASK 
 void motor_task(void *pvParameters)
 {
-    bool direction = true;
+    int direction = 1;
+    int past_state = band_system;
+    int is_on = 0;
     const uint32_t duty = 1023;  // velocidad media
 
-    while (1)
-    {
-        motor_stop(&motor);
-        RTOS_delay(200);
+    while (1){
 
-        motor_set_direction(&motor, direction);
-        motor_set_speed(&motor, duty);
-
-        RTOS_delay(3000);
-        direction = !direction;
+        if(!is_on)
+        {
+            motor_stop(&motor);
+            RTOS_delay(200);
+        }
+        else if (!band_system)
+        {
+            motor_stop(&motor);
+            RTOS_delay(200);
+            motor_set_direction(&motor, direction);
+            motor_set_speed(&motor, duty);
+            RTOS_delay(3000);
+            motor_stop(&motor);
+            direction = !direction;
+        }else
+        {
+            motor_stop(&motor);
+            RTOS_delay(200);
+            motor_set_direction(&motor, direction);
+            motor_set_speed(&motor, duty);
+            RTOS_delay(3000);
+            motor_stop(&motor);
+            direction = !direction;
+        }
+        
+        if (past_state == band_system)
+        {
+            is_on = 0;
+        }else
+        {
+            is_on = 1;
+        }
+        past_state = band_system;
     }
 }
- 
  
 // SUNRISE TASK
 static void task_sunrise(void *arg)
 {
-    while (1)
-    {
-        /* 21 pasos × 3000 ms ≈ 63 s de amanecer */
-        tira_sunrise_from_array(3000);
-        tira_off();
+    while(1){
+        tira_sunrise_from_array(3000, &band_system);
         RTOS_delay(1000);
     }
 }
@@ -157,10 +185,13 @@ static void taskAudio(void *pvParameters)
 
     while (1)
     {
+        float audio_value = 0.0f;
         if (xQueueReceive(audioQueue, &sample, portMAX_DELAY))
         {
-            audio_process_sample(sample);
+            audio_value = audio_process_sample(sample);
+            ESP_LOGI(TAG, "Nivel de ruido: %.2f dB", audio_value);
         }
+        RTOS_delay(1000);
     }
 }
 
@@ -172,16 +203,17 @@ static void taskLight(void *pvParameters)
 
     while (1)
     {
+        float light_value = 0.0f;
         if (xQueueReceive(lightQueue, &sample, portMAX_DELAY))
         {
-            light_process_sample(sample);
+            light_value = light_process_sample(sample);
+            ESP_LOGI(TAG, "Luz detectada: %.2f %%", light_value);
         }
+        RTOS_delay(1000);
     }
 }
 
-// ============================
 // TAREA MONITOR IP
-// ============================
 void ip_monitor_task(void *pvParameters)
 {
     esp_netif_ip_info_t ip_info;
@@ -203,10 +235,9 @@ void ip_monitor_task(void *pvParameters)
                          IP2STR(&ip_info.gw));
             }
         }
-        vTaskDelay(pdMS_TO_TICKS(5000));
+        vTaskDelay(pdMS_TO_TICKS(6000));
     }
 }
-
 
 //  Main
 void app_main(void)
@@ -218,12 +249,12 @@ void app_main(void)
     adc_dma_setup();
  
     motor_init(&motor, GPIO_NUM_17, GPIO_NUM_19, GPIO_NUM_20);
-    buzzer_init(&buzzer);
+    buzzer_init(&buzzer, GPIO_NUM_2, BUZZER_DEFAULT_FREQ_HZ);
 
     audio_init();
 
-    audioQueue = xQueueCreate(200, sizeof(adc_sample_t));
-    lightQueue = xQueueCreate(50,  sizeof(adc_sample_t));
+    audioQueue = xQueueCreate(1, sizeof(adc_sample_t));
+    lightQueue = xQueueCreate(1,  sizeof(adc_sample_t));
  
     dht_queue = xQueueCreate(1, sizeof(dht11_data_t));
 
@@ -246,19 +277,13 @@ void app_main(void)
     ESP_LOGI(TAG, "Iniciando servidor HTTP...");
     start_server();
 
- 
     xTaskCreate(task_dht,"task_dht", 2048, NULL, 4, NULL);
-    xTaskCreate(task_monitor, "task_monitor", 2048, NULL, 3, NULL);    
-    xTaskCreate(taskADC,   "ADC",   4096, NULL, 3, NULL);
-    xTaskCreate(taskAudio, "Audio", 4096, NULL, 2, NULL);
-    xTaskCreate(taskLight, "Light", 4096, NULL, 2, NULL);
-    
-    if (band_system)
-    {
-        xTaskCreate(task_sunrise, "task_sunrise", 4096, NULL, 4, NULL);
-        xTaskCreate(task_buzzer, "Buzzer", 2048, NULL, 4, NULL);
-        xTaskCreate(motor_task, "motor_task", 2048, NULL, 5, NULL);
-    }
-
+    xTaskCreate(task_monitor, "task_monitor", 2048, NULL, 4, NULL);    
+    xTaskCreate(taskADC,   "ADC",   4096, NULL, 6, NULL);
+    xTaskCreate(taskAudio, "Audio", 4096, NULL, 4, NULL);
+    xTaskCreate(taskLight, "Light", 4096, NULL, 4, NULL);
+    xTaskCreate(task_sunrise, "task_sunrise", 4096, NULL, 3, NULL);
+    xTaskCreate(task_buzzer, "Buzzer", 2048, NULL, 3, NULL);
+    xTaskCreate(motor_task, "motor_task", 2048, NULL, 3, NULL);
    
 }

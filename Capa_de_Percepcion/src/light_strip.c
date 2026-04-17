@@ -85,15 +85,22 @@ esp_err_t tira_off(void)
 }
 
 
-esp_err_t tira_sunrise_from_array(uint32_t step_ms)
+esp_err_t tira_sunrise_from_array(uint32_t step_ms, int *band_system)
 {
     for (int i = 0; i < 21; i++) {
-        tira_set_color(
-            sunrise_colors[i].r,
-            sunrise_colors[i].g,
-            sunrise_colors[i].b
-        );
-        vTaskDelay(pdMS_TO_TICKS(step_ms));
+        //ESP_LOGI(TAG, "Estado de la bandera: %d", *band_system);
+        if(*band_system){
+            tira_set_color(
+                sunrise_colors[i].r,
+                sunrise_colors[i].g,
+                sunrise_colors[i].b
+            );
+            vTaskDelay(pdMS_TO_TICKS(step_ms));
+        }else{
+            tira_off();
+            vTaskDelay(pdMS_TO_TICKS(step_ms));
+            break;
+        }
     }
     return ESP_OK;
 }

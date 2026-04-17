@@ -1,9 +1,9 @@
 #include "sensor_light.h"
 
 #include "esp_log.h"
+int count_light = 0;
 
-
-void light_process_sample(adc_sample_t sample)
+float light_process_sample(adc_sample_t sample)
 {
     float pct;
 
@@ -13,9 +13,20 @@ void light_process_sample(adc_sample_t sample)
         adc_cali_raw_to_voltage(adc_cali_handle, sample.value, &voltage_mv);
 
         pct = ((float)voltage_mv / 2300.0f) * 100.0f;
+        /*if (pct > Umbral_Luz)
+        {
+            count_light++;
+        }
+        if (count_light > DECIMATION_LIGHT)
+        {
+            ESP_LOGI("ALTOS NIVELES DE LUZ EN LA HABITACIÓN. SE RECOMIENDA APAGAR LAS LUCES.", 
+                "Luz detectada: %.2f %% ", pct);
+            count_light = 0; 
 
-        /*ESP_LOGI("LIGHT", "RAW: %d | Volt: %d mV | Luz: %.2f %%",
-                 sample.value, voltage_mv, pct);*/
+        }*/
+        
+        
+        //ESP_LOGI("LIGHT", "RAW: %d | Volt: %d mV | Luz: %.2f %%",sample.value, voltage_mv, pct);
     }
     else
     {
@@ -28,4 +39,6 @@ void light_process_sample(adc_sample_t sample)
 
     if (pct > 100.0f) pct = 100.0f;
     if (pct <   0.0f) pct =   0.0f;
+
+    return pct;
 }

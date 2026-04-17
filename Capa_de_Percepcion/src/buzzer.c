@@ -11,8 +11,12 @@
 #define BUZZER_LEDC_TIMER   LEDC_TIMER_1
 #define BUZZER_LEDC_CHANNEL LEDC_CHANNEL_1
 
-void buzzer_init(buzzer_t *b)
+void buzzer_init(buzzer_t *b, gpio_num_t pin, uint32_t frequency_hz)
 {
+    b->pin = pin;
+    b->frequency_hz = frequency_hz;
+    b->is_on = false;
+
     ledc_timer_config_t timer = {
         .speed_mode      = BUZZER_LEDC_MODE,
         .timer_num       = BUZZER_LEDC_TIMER,

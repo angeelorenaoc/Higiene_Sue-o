@@ -85,8 +85,8 @@ esp_err_t root_get_handler(httpd_req_t *req)
         "<h1>ESP32 Server</h1>"
         "<p>Servidor funcionando</p>"
         "<a href=\"/status\">Estado</a><br>"
-        "<a href=\"/led?state=on\">LED ON</a><br>"
-        "<a href=\"/led?state=off\">LED OFF</a>"
+        "<a href=\"/led?state=on\">INICIAR ACTURADORES</a><br>"
+        "<a href=\"/led?state=off\">DETENER ACTUADORES</a>"
         "</body></html>";
     httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
@@ -117,12 +117,12 @@ esp_err_t led_handler(httpd_req_t *req)
         {
             if (strcmp(param, "on") == 0)
             {
-                ESP_LOGI(TAG, "LED ON");
+                ESP_LOGI(TAG, "ACTUADORES ON");
                 band_system = 1;
             }
             else if (strcmp(param, "off") == 0)
             {
-                ESP_LOGI(TAG, "LED OFF");
+                ESP_LOGI(TAG, "ACTUADORES OFF");
                 band_system = 0;
             }
         }

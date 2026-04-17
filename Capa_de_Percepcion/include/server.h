@@ -15,17 +15,13 @@
 
 #include "esp_http_server.h"
 
-#define WIFI_SSID "ANGIE"
-#define WIFI_PASS "1001804091"
+#define WIFI_SSID "Tesla"
+#define WIFI_PASS "L4b_L3D_22"
 #define WIFI_CONNECTED_BIT BIT0
 
-static const char *TAG = "APP";
+static const char *TAG = "APP_SERVER";
 extern int band_system;
 
-// Evento WiFi
-/*static EventGroupHandle_t wifi_event_group;
-static esp_netif_t *sta_netif = NULL;
-*/
 extern EventGroupHandle_t wifi_event_group;
 extern esp_netif_t *sta_netif;
 void wifi_init(void);

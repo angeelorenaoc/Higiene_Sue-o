@@ -15,12 +15,12 @@ void audio_init(void)
 }
 
 
-void audio_process_sample(adc_sample_t sample)
+float audio_process_sample(adc_sample_t sample)
 {
     float v = (sample.value * 3.3f) / 4095.0f;
     s_buffer[s_index++] = v;
 
-    if (s_index < RMS_SIZE) return;
+    //if (s_index < RMS_SIZE) return;
 
     /* Offset DC */
     float sum = 0.0f;
@@ -41,4 +41,5 @@ void audio_process_sample(adc_sample_t sample)
 
     //ESP_LOGI("AUDIO", "RMS: %.4f V | dB: %.2f", rms, db);
     s_index = 0;
+    return db;
 }
