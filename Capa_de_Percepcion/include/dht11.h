@@ -1,3 +1,5 @@
+#ifndef DHT11_H
+#define DHT11_H
 #include <stdint.h>
 #include "esp_err.h"
 
@@ -8,3 +10,5 @@ typedef struct {
 
 esp_err_t dht11_init(int gpio_pin);
 esp_err_t dht11_read(int gpio_pin, dht11_data_t *out);
+
+#endif
