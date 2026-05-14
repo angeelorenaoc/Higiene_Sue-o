@@ -17,11 +17,11 @@ bool adc_calibration_init(void)
     };
 
     if (adc_cali_create_scheme_curve_fitting(&cali_config, &adc_cali_handle) == ESP_OK) {
-        ESP_LOGI(TAG, "Calibración ADC habilitada");
+        //ESP_LOGI(TAG, "Calibración ADC habilitada");
         return true;
     }
 
-    ESP_LOGW(TAG, "Calibración ADC no soportada, usando conversión lineal");
+    //ESP_LOGW(TAG, "Calibración ADC no soportada, usando conversión lineal");
     return false;
 }
 

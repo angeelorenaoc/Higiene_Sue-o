@@ -9,9 +9,27 @@
 #include "light_strip.h"
 #include "motor.h"
 #include "buzzer.h"
-#include "server.h"
+#include "mqtts.h"
+
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <stdint.h>
+
+#include "freertos/event_groups.h"
+#include "esp_system.h"
+#include "esp_err.h"
+#include "nvs_flash.h"
+#include "esp_netif.h"
+#include "esp_event.h"
+#include "esp_wifi.h"
+#include "mqtt_client.h"
+#include "esp_sntp.h"
+#include "esp_rom_sys.h"
  
-#define TAG           "APP_MAIN"
+#define TAG1           "APP_MAIN"
 #define DHT11_PIN     GPIO_NUM_23
 #define RTOS_delay(x) vTaskDelay(pdMS_TO_TICKS(x))
  
@@ -25,6 +43,8 @@ static QueueHandle_t dht_queue;
 
 static buzzer_t buzzer;
 static motor_t motor;
+
+int band_system = false;
 
 static void taskADC(void *pvParameters)
 {
@@ -76,12 +96,14 @@ static void task_dht(void *arg)
         esp_err_t err = dht11_read(DHT11_PIN, &data);
         if (err == ESP_OK) {
             xQueueOverwrite(dht_queue, &data);
-        } else {
-            ESP_LOGI(TAG, "DHT11 error: %s", esp_err_to_name(err));
+            pub_dht(&data);
+        }else {
+            ESP_LOGI(TAG1, "DHT11 error: %s", esp_err_to_name(err));
         }
         RTOS_delay(1000);
     }
 }
+
 
 //  BUZZER TASK
 static void task_buzzer(void *arg)
@@ -164,19 +186,6 @@ static void task_sunrise(void *arg)
 }
  
  
-//  MONITOR TASK 
-static void task_monitor(void *arg)
-{
-    dht11_data_t dht_data = {0};
-    while (1)
-    {
-        if (xQueueReceive(dht_queue, &dht_data, 0) == pdTRUE) {
-            ESP_LOGI(TAG, "(T, H) = (%.1f°C, %.1f%%)",
-                     dht_data.temperature, dht_data.humidity);
-        }
-        RTOS_delay(1000);
-    }
-}
  
 // AUDIO TASK
 static void taskAudio(void *pvParameters)
@@ -189,7 +198,8 @@ static void taskAudio(void *pvParameters)
         if (xQueueReceive(audioQueue, &sample, portMAX_DELAY))
         {
             audio_value = audio_process_sample(sample);
-            ESP_LOGI(TAG, "Nivel de ruido: %.2f dB", audio_value);
+            pub_audio(audio_value);
+            ESP_LOGI(TAG1, "Nivel de ruido: %.2f dB", audio_value);
         }
         RTOS_delay(1000);
     }
@@ -200,20 +210,23 @@ static void taskAudio(void *pvParameters)
 static void taskLight(void *pvParameters)
 {
     adc_sample_t sample;
-
     while (1)
     {
         float light_value = 0.0f;
+
         if (xQueueReceive(lightQueue, &sample, portMAX_DELAY))
         {
             light_value = light_process_sample(sample);
-            ESP_LOGI(TAG, "Luz detectada: %.2f %%", light_value);
+            pub_light(light_value);
+
+            ESP_LOGI(TAG1, "Luz detectada: %.2f %%", light_value);
         }
         RTOS_delay(1000);
     }
 }
 
 // TAREA MONITOR IP
+/*
 void ip_monitor_task(void *pvParameters)
 {
     esp_netif_ip_info_t ip_info;
@@ -237,11 +250,19 @@ void ip_monitor_task(void *pvParameters)
         }
         vTaskDelay(pdMS_TO_TICKS(6000));
     }
-}
+}*/
 
 //  Main
 void app_main(void)
 {
+    esp_err_t ret = nvs_flash_init();
+
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ESP_ERROR_CHECK(nvs_flash_init());
+    }
+
+    mqtts_init();
 
     dht11_init(DHT11_PIN);
     actuadores_init();
@@ -258,27 +279,8 @@ void app_main(void)
  
     dht_queue = xQueueCreate(1, sizeof(dht11_data_t));
 
-    // SERVIDOR HTTP
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
-    {
-        nvs_flash_erase();
-        nvs_flash_init();
-    }
-    wifi_init();
-    // Tarea que imprime IP periódicamente
-    xTaskCreate(ip_monitor_task, "ip_monitor", 4096, NULL, 4, NULL);
-    // Esperar conexión WiFi
-    xEventGroupWaitBits(wifi_event_group,
-                        WIFI_CONNECTED_BIT,
-                        pdFALSE,
-                        pdFALSE,
-                        portMAX_DELAY);
-    ESP_LOGI(TAG, "Iniciando servidor HTTP...");
-    start_server();
 
-    xTaskCreate(task_dht,"task_dht", 2048, NULL, 4, NULL);
-    xTaskCreate(task_monitor, "task_monitor", 2048, NULL, 4, NULL);    
+    xTaskCreate(task_dht,"task_dht", 2048, NULL, 4, NULL);   
     xTaskCreate(taskADC,   "ADC",   4096, NULL, 6, NULL);
     xTaskCreate(taskAudio, "Audio", 4096, NULL, 4, NULL);
     xTaskCreate(taskLight, "Light", 4096, NULL, 4, NULL);
