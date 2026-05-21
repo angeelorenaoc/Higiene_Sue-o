@@ -9,8 +9,8 @@
 
 // ==========================// CONFIGURACIÓN MQTT TLS// ==========================
 
-//#define MQTT_BROKER_URI "mqtt://10.183.49.214:1883"
-#define MQTT_BROKER_URI "mqtts://10.183.49.229:8883"
+//#define MQTT_BROKER_URI "mqtt://10.183.49.229:8883"
+#define MQTT_BROKER_URI "mqtts://10.44.251.114:8883"
 //#define MQTT_BROKER_URI "mqtt://3.124.236.199:1883"
 
 // ==========================// VARIABLES GLOBALES// ==========================
@@ -119,7 +119,7 @@ void pub_light(float light_value)
 
         snprintf(light_str,
                  sizeof(light_str),
-                 "%.2f",
+                 "l:%.2f",
                  light_value);
 
         int msg_id_light = esp_mqtt_client_publish(
@@ -147,7 +147,7 @@ void pub_audio(float audio_value)
 
         snprintf(audio_str,
                  sizeof(audio_str),
-                 "%.2f",
+                 "a:%.2f",
                  audio_value);
 
         int msg_id_audio = esp_mqtt_client_publish(
@@ -172,8 +172,8 @@ void pub_dht(dht11_data_t *data)
     {
         char tem_str[16];
         char hum_str[16];
-        snprintf(tem_str, sizeof(tem_str), "%.1f", data->temperature);
-        snprintf(hum_str,sizeof(hum_str),"%.1f",data->humidity);
+        snprintf(tem_str, sizeof(tem_str), "t:%.1f", data->temperature);
+        snprintf(hum_str,sizeof(hum_str),"h:%.1f",data->humidity);
 
         int msg_id = esp_mqtt_client_publish(
             mqtt_client,
