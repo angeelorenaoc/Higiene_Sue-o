@@ -3,7 +3,7 @@
 #define TOPICS_HPP
 
 #include <string>
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 
 namespace mqtt {
     /*
