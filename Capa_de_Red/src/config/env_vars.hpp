@@ -7,6 +7,7 @@ namespace config {
         constexpr const auto HOST = "localhost";
         constexpr const auto PORT = 1883;
         constexpr const auto USE_TLS = false;
+        constexpr const auto USE_TLS_INSECURE = true;
     }
 }
 

@@ -17,18 +17,24 @@ namespace mqtt {
         mosquitto_lib_init();
         mosq = mosquitto_new(NULL, true, this);
 
-        MQTT_INFO("Configuring TLS");
-        mosquitto_tls_insecure_set(mosq, setting::USE_TLS);
-        int tls_rc = mosquitto_tls_set(
-            mosq,
-            "/etc/mosquitto/certs/ca.crt",
-            nullptr,
-            "/etc/mosquitto/certs/client.crt",
-            "/etc/mosquitto/certs/client.key",
-            nullptr
-        );
+        if (setting::USE_TLS) {
+            MQTT_INFO("Configuring TLS");
+            MQTT_INFO("Using TLS insecure: {}", setting::USE_TLS_INSECURE);
+            mosquitto_tls_insecure_set(mosq, setting::USE_TLS_INSECURE);
+            int tls_rc = mosquitto_tls_set(
+                mosq,
+                "/etc/mosquitto/certs/ca.crt",
+                nullptr,
+                "/etc/mosquitto/certs/client.crt",
+                "/etc/mosquitto/certs/client.key",
+                nullptr
+            );
 
-        MQTT_INFO("TLS result: {}", mosquitto_strerror(tls_rc));
+            MQTT_INFO("TLS result: {}", mosquitto_strerror(tls_rc));
+        }
+        else {
+            MQTT_INFO("Not using TLS");
+        }
 
         mosquitto_connect_callback_set(mosq, client::on_connect);
         mosquitto_message_callback_set(mosq, client::on_message);

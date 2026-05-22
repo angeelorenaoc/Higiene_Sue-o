@@ -12,6 +12,7 @@ namespace mqtt::setting {
     constexpr const auto KEEP_ALIVE = 60;
     constexpr const auto TIMEOUT = -1; // Default: -1 (1000ms)
     constexpr const auto USE_TLS = config::mqtt::USE_TLS;
+    constexpr const auto USE_TLS_INSECURE = config::mqtt::USE_TLS_INSECURE;
 }
 
 #endif
