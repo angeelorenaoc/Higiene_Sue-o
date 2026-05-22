@@ -2,11 +2,12 @@
 
 #include <string>
 #include <stdexcept>
-#include <spdlog/fmt/fmt.h>
+#include <fmt/format.h>
 
 #include "../logger/shorthands.hpp"
 
 #include "headers/payload.hpp"
+#include "headers/settings.hpp"
 #include "headers/topics.hpp"
 #include "headers/commands.hpp"
 
@@ -15,6 +16,19 @@ namespace mqtt {
         : host(host), port(port) {
         mosquitto_lib_init();
         mosq = mosquitto_new(NULL, true, this);
+
+        MQTT_INFO("Configuring TLS");
+        mosquitto_tls_insecure_set(mosq, setting::USE_TLS);
+        int tls_rc = mosquitto_tls_set(
+            mosq,
+            "/etc/mosquitto/certs/ca.crt",
+            nullptr,
+            "/etc/mosquitto/certs/client.crt",
+            "/etc/mosquitto/certs/client.key",
+            nullptr
+        );
+
+        MQTT_INFO("TLS result: {}", mosquitto_strerror(tls_rc));
 
         mosquitto_connect_callback_set(mosq, client::on_connect);
         mosquitto_message_callback_set(mosq, client::on_message);
@@ -26,14 +40,14 @@ namespace mqtt {
     }
 
     void client::start() {
-        int rc = mosquitto_connect(mosq, host.c_str(), port, 60);
+        int rc = mosquitto_connect(mosq, host.c_str(), port, setting::KEEP_ALIVE);
         if (rc != MOSQ_ERR_SUCCESS) {
             auto errMsg = fmt::format("Failed to connect: {}", mosquitto_strerror(rc));
             MQTT_CRITICAL(errMsg);
             MQTT_DEBUG("Check Mosquitto is running using 'sudo systemctl status mosquitto'");
             throw std::runtime_error(errMsg);
         } else {
-            MQTT_INFO("[MQTT] Connected to broker");
+            MQTT_INFO("Connected to broker");
         }
     }
 
@@ -42,14 +56,14 @@ namespace mqtt {
     }
 
     void client::subscribe(const topic& topic) {
-        int rc = mosquitto_subscribe(mosq, nullptr, topic, 0);
+        int rc = mosquitto_subscribe(mosq, nullptr, topic, setting::QOS);
         MQTT_INFO("Subscribe to '{}': {}", topic, mosquitto_strerror(rc));
     }
 
 
     void client::on_connect(mosquitto* mosq, void* obj, int rc) {
         if (rc == 0) {
-            MQTT_INFO("[MQTT] Connected");
+            MQTT_INFO("Connected");
 
             auto* self = static_cast<client*>(obj);
             self->subscribe(topic::SUB);
@@ -61,7 +75,7 @@ namespace mqtt {
         auto* self = static_cast<client*>(obj);
 
         auto pl = payload::unmarshal(std::string((char*)msg->payload, msg->payloadlen));
-        MQTT_INFO("[MQTT] On topic '{}': {}", msg->topic, pl.message);
+        MQTT_INFO("On topic '{}': {}", msg->topic, pl.message);
 
         if (pl.message == "ON") {
             self->publish(topic::PUB, payload{cmd::ON});
@@ -69,7 +83,9 @@ namespace mqtt {
             self->publish(topic::PUB, payload{cmd::OFF});
         }
 
-        self->cb(msg->topic, pl);
+        if (self->cb) {
+            self->cb(msg->topic, pl);
+        }
     }
 
     void client::loop() {
