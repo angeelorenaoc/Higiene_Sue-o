@@ -2,7 +2,7 @@
 #ifndef LOGGER_SHORTCUTS_HPP
 #define LOGGER_SHORTCUTS_HPP
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
 #define TLOG(tag, level, formt, ...) SPDLOG_##level("[{}] {}", tag, fmt::format(fmt::runtime(formt) __VA_OPT__(,) __VA_ARGS__))

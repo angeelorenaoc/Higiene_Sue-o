@@ -18,7 +18,6 @@ target_link_libraries(sleep_monitor
     SQLite::SQLite3
     nlohmann_json::nlohmann_json
     mosquitto
-    spdlog::spdlog
 )
 
 add_compile_definitions(SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE)
