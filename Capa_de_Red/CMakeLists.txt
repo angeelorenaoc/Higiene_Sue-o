@@ -5,12 +5,13 @@ set(CMAKE_CXX_STANDARD 23)
 
 find_package(SQLite3 REQUIRED)
 find_package(nlohmann_json REQUIRED)
-find_package(spdlog REQUIRED)
+
+add_subdirectory(src/vendor/spdlog)
 
 add_executable(sleep_monitor
-    main.cpp
-    mqtt/client.cpp
-    logger/setup.cpp
+    src/main.cpp
+    src/mqtt/client.cpp
+    src/logger/setup.cpp
 )
 
 target_link_libraries(sleep_monitor
@@ -21,4 +22,4 @@ target_link_libraries(sleep_monitor
 )
 
 add_compile_definitions(SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE)
-target_include_directories(sleep_monitor PRIVATE include)
+target_include_directories(sleep_monitor PRIVATE vendor)
