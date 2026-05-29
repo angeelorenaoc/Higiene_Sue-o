@@ -16,6 +16,9 @@ namespace mqtt {
         : host(host), port(port) {
         mosquitto_lib_init();
         mosq = mosquitto_new(NULL, true, this);
+        mosquitto_log_callback_set(mosq, [](mosquitto*, void*, int level, const char* str) {
+            MQTT_INFO("[%d]: %s\n", level, str);
+        });
 
         if (setting::USE_TLS) {
             MQTT_INFO("Configuring TLS");
