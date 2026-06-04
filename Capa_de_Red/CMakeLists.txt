@@ -23,3 +23,12 @@ target_link_libraries(sleep_monitor
 
 add_compile_definitions(SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE)
 target_include_directories(sleep_monitor PRIVATE vendor)
+
+add_custom_command(
+    TARGET sleep_monitor POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E remove -f $<TARGET_FILE_DIR:sleep_monitor>/.env
+    COMMAND ${CMAKE_COMMAND} -E create_symlink
+        ${CMAKE_SOURCE_DIR}/.env
+        $<TARGET_FILE_DIR:sleep_monitor>/.env
+    COMMENT "Symlinking .env into build directory"
+)

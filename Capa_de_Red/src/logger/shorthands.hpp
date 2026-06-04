@@ -14,4 +14,11 @@
 #define MQTT_ERROR(...) TLOG("MQTT", ERROR, __VA_ARGS__)
 #define MQTT_CRITICAL(...) TLOG("MQTT", CRITICAL, __VA_ARGS__)
 
+#define ENV_TRACE(...) TLOG("ENV", TRACE, __VA_ARGS__)
+#define ENV_DEBUG(...) TLOG("ENV", DEBUG, __VA_ARGS__)
+#define ENV_INFO(...) TLOG("ENV", INFO, __VA_ARGS__)
+#define ENV_WARN(...) TLOG("ENV", WARN, __VA_ARGS__)
+#define ENV_ERROR(...) TLOG("ENV", ERROR, __VA_ARGS__)
+#define ENV_CRITICAL(...) TLOG("ENV", CRITICAL, __VA_ARGS__)
+
 #endif

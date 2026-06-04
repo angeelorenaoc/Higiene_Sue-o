@@ -10,7 +10,7 @@ namespace logger {
         console_sink->set_level(spdlog::level::info);
         console_sink->set_pattern("[%d/%m/%Y %T] [%^%l%$] [%s:%#] %v");
 
-        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("sleep_monitor.log", true);
+        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("./sleep_monitor.log", true);
         file_sink->set_level(spdlog::level::trace);
         file_sink->set_pattern("[%d/%m/%Y %T] [%l] [%s:%#] [%!] [pid:%P | tid:%t] %v");
 

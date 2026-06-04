@@ -17,7 +17,7 @@ namespace mqtt {
         mosquitto_lib_init();
         mosq = mosquitto_new(NULL, true, this);
         mosquitto_log_callback_set(mosq, [](mosquitto*, void*, int level, const char* str) {
-            MQTT_INFO("[{}]: {}\n", level, str);
+            MQTT_DEBUG("[{}]: {}\n", level, str);
         });
 
         if (setting::USE_TLS) {
