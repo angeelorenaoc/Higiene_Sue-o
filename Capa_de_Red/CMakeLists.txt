@@ -30,5 +30,5 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E create_symlink
         ${CMAKE_SOURCE_DIR}/.env
         $<TARGET_FILE_DIR:sleep_monitor>/.env
-    COMMENT "Symlinking .env into build directory"
+    COMMENT "Created symlinking .env into build directory"
 )
