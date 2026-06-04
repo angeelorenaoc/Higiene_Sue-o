@@ -2,7 +2,7 @@
 #ifndef SETTINGS_HPP
 #define SETTINGS_HPP
 
-#include "../../config/env_vars.hpp"
+#include "../../config/env.hpp"
 
 /// To change
 namespace mqtt::setting {
@@ -13,6 +13,8 @@ namespace mqtt::setting {
     const auto TIMEOUT = config::env.int_or("MQTT_TIMEOUT", -1); // Default: -1 (1000ms)
     const auto USE_TLS = config::env.bool_or("MQTT_USE_TLS", false);
     const auto USE_TLS_INSECURE = config::env.bool_or("MQTT_USE_TLS_INSECURE", true);
+    const auto CERTS_PATH = config::env.get("MQTT_CERTS_PATH");
+
 }
 
 #endif

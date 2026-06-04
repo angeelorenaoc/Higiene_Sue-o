@@ -8,7 +8,6 @@ int main() {
     logger::setup();
 
     mqtt::client mqtt(mqtt::setting::HOST, mqtt::setting::PORT);
-    MQTT_INFO("Connecting to {}:{}", mqtt::setting::HOST, mqtt::setting::PORT);
 
     mqtt.setMessageCallback([](const mqtt::topic& topic, const mqtt::payload& payload) {
         MQTT_INFO("{} -> {}", topic, payload.message);

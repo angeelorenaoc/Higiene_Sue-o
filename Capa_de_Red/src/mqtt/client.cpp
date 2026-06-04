@@ -1,5 +1,6 @@
 #include "client.hpp"
 
+#include <mosquitto/broker_plugin.h>
 #include <string>
 #include <stdexcept>
 #include <spdlog/fmt/fmt.h>
@@ -14,6 +15,7 @@
 namespace mqtt {
     client::client(const std::string& host, int port)
         : host(host), port(port) {
+        MQTT_INFO("Connecting to {}:{}", host, port);
         mosquitto_lib_init();
         mosq = mosquitto_new(NULL, true, this);
         mosquitto_log_callback_set(mosq, [](mosquitto*, void*, int level, const char* str) {
@@ -26,10 +28,10 @@ namespace mqtt {
             mosquitto_tls_insecure_set(mosq, setting::USE_TLS_INSECURE);
             int tls_rc = mosquitto_tls_set(
                 mosq,
-                "/etc/mosquitto/certs/ca.crt",
+                (certsPath + "/ca.crt").c_str(),
                 nullptr,
-                "/etc/mosquitto/certs/client.crt",
-                "/etc/mosquitto/certs/client.key",
+                (certsPath + "/client.crt").c_str(),
+                (certsPath + "/client.key").c_str(),
                 nullptr
             );
 
