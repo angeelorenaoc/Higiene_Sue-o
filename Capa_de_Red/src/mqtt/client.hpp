@@ -34,7 +34,7 @@ namespace mqtt {
         int port = setting::PORT;
 
         std::string certsPath = setting::CERTS_PATH;
-        message_callback cb = [](const topic&, const payload&){};
+        // message_callback cb = [](const topic&, const payload&){};
 
         static void on_connect(struct mosquitto*, void*, int);
         static void on_message(struct mosquitto*, void*, const struct mosquitto_message*);

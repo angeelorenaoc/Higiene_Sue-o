@@ -1,6 +1,6 @@
 #include <thread>
 
-#include "logger/shorthands.hpp"
+//#include "logger/shorthands.hpp"
 #include "logger/setup.hpp"
 #include "mqtt/client.hpp"
 
@@ -27,13 +27,7 @@ int main() {
     mqtt.subscribe(mqtt::topic::SUB);
     mqtt.publish(mqtt::topic::PUB, mqtt::payload{mqtt::cmd::INIT});
 
-    // Blocking loop in a thread so we can add more things later
-    std::thread mqttThread([&mqtt]() {
-        while (running);
-
-    });
-
-    mqttThread.join();
+    while (running) std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     mqtt.disconnect();
     logger::shutdown();

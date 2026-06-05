@@ -1,8 +1,10 @@
 #include "client.hpp"
 
+#include <cerrno>
 #include <mosquitto.h>
 #include <mosquitto/defs.h>
 #include <mosquitto/libcommon_string.h>
+#include <mosquitto/libmosquitto.h>
 #include <mosquitto/libmosquitto_callbacks.h>
 #include <mosquitto/libmosquitto_connect.h>
 #include <mosquitto/libmosquitto_loop.h>
@@ -20,9 +22,19 @@
 namespace mqtt {
     client::client(const std::string& host, int port)
         : host(host), port(port) {
+        MQTT_INFO("Initializing mosquitto");
+        int rc = mosquitto_lib_init();
+        if (rc != MOSQ_ERR_SUCCESS) {
+            MQTT_ERROR("Initialization failed: {}", mosquitto_strerror(rc));
+            return;
+        }
+
         MQTT_INFO("Connecting to {}:{}", host, port);
-        mosquitto_lib_init();
         mosq = mosquitto_new(NULL, true, this);
+        if (mosq == NULL) {
+            MQTT_ERROR("Mosquitto creation failed: {}", mosquitto_strerror(errno));
+            return;
+        }
         mosquitto_log_callback_set(mosq, [](mosquitto*, void*, int level, const char* str) {
             MQTT_DEBUG("[{}]: {}\n", level, str);
         });
@@ -121,6 +133,7 @@ namespace mqtt {
             }
         }
 
+        mosquitto_lib_cleanup();
         return true;
     }
 
