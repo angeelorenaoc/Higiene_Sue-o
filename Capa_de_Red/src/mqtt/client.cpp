@@ -1,6 +1,11 @@
 #include "client.hpp"
 
 #include <mosquitto.h>
+#include <mosquitto/defs.h>
+#include <mosquitto/libcommon_string.h>
+#include <mosquitto/libmosquitto_callbacks.h>
+#include <mosquitto/libmosquitto_connect.h>
+#include <mosquitto/libmosquitto_loop.h>
 #include <string>
 #include <stdexcept>
 #include <spdlog/fmt/fmt.h>
@@ -43,6 +48,7 @@ namespace mqtt {
 
         mosquitto_connect_callback_set(mosq, client::on_connect);
         mosquitto_message_callback_set(mosq, client::on_message);
+        mosquitto_disconnect_callback_set(mosq, client::on_disconnect);
     }
 
     client::~client() {
@@ -50,38 +56,107 @@ namespace mqtt {
         mosquitto_lib_cleanup();
     }
 
-    void client::start() {
-        int rc = mosquitto_connect(mosq, host.c_str(), port, setting::KEEP_ALIVE);
+    bool client::start() {
+        MQTT_TRACE("Connecting mosquitto thread");
+        int rc = mosquitto_connect_async(mosq, host.c_str(), port, setting::KEEP_ALIVE);
         if (rc != MOSQ_ERR_SUCCESS) {
             auto errMsg = fmt::format("Failed to connect: {}", mosquitto_strerror(rc));
             MQTT_CRITICAL(errMsg);
-            MQTT_DEBUG("Check Mosquitto is running using 'sudo systemctl status mosquitto'");
+            MQTT_WARN("Check Mosquitto is running using 'sudo systemctl status mosquitto'");
             throw std::runtime_error(errMsg);
-        } else {
-            MQTT_INFO("Connected to broker");
         }
+
+        MQTT_TRACE("Connected to broker");
+        MQTT_TRACE("Starting mosquitto thread");
+
+        switch (mosquitto_loop_start(mosq)) {
+            case MOSQ_ERR_SUCCESS:{
+                MQTT_INFO("Mosquitto thread started succesfully");
+                break;
+            }
+            case MOSQ_ERR_INVAL:{
+                MQTT_ERROR("Invalid mosquitto instance used");
+                return false;
+            }
+            case MOSQ_ERR_NOT_SUPPORTED:{
+                MQTT_ERROR("Thread support not available");
+                return false;
+            }
+        }
+
+        return true;
+    }
+    bool client::disconnect() {
+        if (mosq) {
+            MQTT_TRACE("Disconnect requested");
+            switch (mosquitto_disconnect(mosq)) {
+                case MOSQ_ERR_SUCCESS:{
+                    MQTT_INFO("Mosquitto thread disconnected succesfully");
+                    break;
+                }
+                case MOSQ_ERR_INVAL:{
+                    MQTT_ERROR("Invalid mosquitto instance used");
+                    return false;
+                }
+                case MOSQ_ERR_NO_CONN:{
+                    MQTT_ERROR("Client was not connected to a broker");
+                    return false;
+                }
+            }
+
+            MQTT_TRACE("Stopping...");
+            switch (mosquitto_loop_stop(mosq, false)) {
+                case MOSQ_ERR_SUCCESS:{
+                    MQTT_INFO("Mosquitto thread stopped succesfully");
+                    break;
+                }
+                case MOSQ_ERR_INVAL:{
+                    MQTT_ERROR("Invalid mosquitto instance used");
+                    return false;
+                }
+                case MOSQ_ERR_NOT_SUPPORTED:{
+                    MQTT_ERROR("Thread support not available");
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
-    void client::publish(const topic& topic, const payload& payload) {
-        mosquitto_publish(mosq, NULL, topic, payload.message.size(), payload.message.c_str(), 1, false);
+    bool client::publish(const topic& topic, const payload& payload) {
+        MQTT_TRACE("Publishing on topic '{}'", topic);
+        int rc = mosquitto_publish(mosq, NULL, topic, payload.message.size(), payload.message.c_str(), 1, false);
+        if (rc != MOSQ_ERR_SUCCESS) {
+            MQTT_ERROR("Failed to publish payload: {}", mosquitto_strerror(rc));
+            return false;
+        }
+
+        return true;
     }
 
-    void client::subscribe(const topic& topic) {
+    bool client::subscribe(const topic& topic) {
+        MQTT_TRACE("Subscribing to topic '{}'", topic);
         int rc = mosquitto_subscribe(mosq, nullptr, topic, setting::QOS);
-        MQTT_INFO("Subscribe to '{}': {}", topic, mosquitto_strerror(rc));
+        if (rc != MOSQ_ERR_SUCCESS) {
+            MQTT_ERROR("Failed to subscribe to topic '{}': {}", topic, mosquitto_strerror(rc));
+            return false;
+        }
+
+        MQTT_INFO("Subscribed to topic '{}'", topic);
+        return true;
     }
 
 
     void client::on_connect(mosquitto* mosq, void* obj, int rc) {
         if (rc == 0) {
-            MQTT_INFO("Connected");
-
+            MQTT_TRACE("Connected");
             auto* self = static_cast<client*>(obj);
-            self->subscribe(topic::SUB);
-            self->publish(topic::PUB, payload{cmd::INIT});
+        } else {
+            MQTT_WARN("Could not connect: {}", mosquitto_strerror(rc));
         }
-    }
 
+    }
     void client::on_message(mosquitto* mosq, void* obj, const mosquitto_message* msg) {
         auto* self = static_cast<client*>(obj);
 
@@ -93,18 +168,18 @@ namespace mqtt {
         } else if (pl.message == "OFF") {
             self->publish(topic::PUB, payload{cmd::OFF});
         }
-
-        if (self->cb) {
-            self->cb(msg->topic, pl);
-        }
+    }
+    void client::on_disconnect(struct mosquitto *mosq, void *obj, int rc) {
+        auto* self = static_cast<client*>(obj);
+            if (rc == 0) {
+                MQTT_INFO("Clean MQTT disconnect");
+            } else {
+                MQTT_WARN("Unexpected MQTT disconnect, rc = {}", rc);
+            }
     }
 
     void client::loop() {
-        mosquitto_loop_forever(mosq, -1, 1);
-    }
-
-    void client::setMessageCallback(message_callback cb) {
-        this->cb = cb;
+        mosquitto_loop_forever(mosq, setting::TIMEOUT, 1);
     }
 
 }

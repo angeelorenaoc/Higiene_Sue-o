@@ -3,7 +3,6 @@
 #define MQTT_CLIENT_HPP
 
 #include <string>
-#include <functional>
 
 #include <mosquitto.h>
 
@@ -13,19 +12,21 @@
 
 namespace mqtt {
 
-    using message_callback = std::function<void(const topic& topic, const payload& payload)>;
+    // using message_callback = std::function<void(const topic& topic, const payload& payload)>;
 
     class client {
     public:
         client(const std::string& host, int port);
         ~client();
 
-        void start();
-        void publish(const topic& topic, const payload& payload);
-        void subscribe(const topic& topic);
+        bool start();
+        bool disconnect();
+
+        bool publish(const topic& topic, const payload& payload);
+        bool subscribe(const topic& topic);
         void loop();
 
-        void setMessageCallback(message_callback cb);
+        // void setMessageCallback(message_callback cb = [](auto, auto){});
 
     private:
         mosquitto* mosq = nullptr;
@@ -37,6 +38,7 @@ namespace mqtt {
 
         static void on_connect(struct mosquitto*, void*, int);
         static void on_message(struct mosquitto*, void*, const struct mosquitto_message*);
+        static void on_disconnect(struct mosquitto *mosq, void *obj, int rc);
     };
 }
 
