@@ -24,7 +24,6 @@ namespace mqtt {
 
         bool publish(const topic& topic, const payload& payload);
         bool subscribe(const topic& topic);
-        void loop();
 
         // void setMessageCallback(message_callback cb = [](auto, auto){});
 

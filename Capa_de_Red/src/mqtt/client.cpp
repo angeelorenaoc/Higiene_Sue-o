@@ -191,8 +191,4 @@ namespace mqtt {
             }
     }
 
-    void client::loop() {
-        mosquitto_loop_forever(mosq, setting::TIMEOUT, 1);
-    }
-
 }
