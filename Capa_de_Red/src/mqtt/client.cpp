@@ -22,7 +22,7 @@
 
 namespace mqtt {
     client::client(const std::string& host, int port) : host(host), port(port) {
-        MQTT_INFO("Initializing mosquitto");
+        MQTT_DEBUG("Initializing mosquitto");
         int rc = mosquitto_lib_init();
         if (rc != MOSQ_ERR_SUCCESS) {
             MQTT_ERROR("Initialization failed: {}", mosquitto_strerror(rc));
@@ -84,7 +84,7 @@ namespace mqtt {
 
         switch (mosquitto_loop_start(mosq)) {
             case MOSQ_ERR_SUCCESS:{
-                MQTT_INFO("Mosquitto thread started succesfully");
+                MQTT_DEBUG("Mosquitto thread started succesfully");
                 break;
             }
             case MOSQ_ERR_INVAL:{
@@ -149,14 +149,14 @@ namespace mqtt {
     }
 
     bool client::subscribe(const topic& topic) {
-        MQTT_TRACE("Subscribing to topic '{}'", topic);
+        MQTT_DEBUG("Subscribing to topic '{}'", topic);
         int rc = mosquitto_subscribe(mosq, nullptr, topic, setting::QOS);
         if (rc != MOSQ_ERR_SUCCESS) {
             MQTT_ERROR("Failed to subscribe to topic '{}': {}", topic, mosquitto_strerror(rc));
             return false;
         }
 
-        MQTT_INFO("Subscribed to topic '{}'", topic);
+        MQTT_DEBUG("Subscribed to topic '{}'", topic);
         return true;
     }
 
@@ -180,13 +180,16 @@ namespace mqtt {
             return;
         }
 
-        MQTT_INFO("On topic '{}': {}", msg->topic, payload);
+        MQTT_DEBUG("On topic '{}': {}", msg->topic, payload);
         self->cb(self, msg->topic, pl);
 
 
-        for (auto[topic, _] : self->topicCBs){
+        for (const auto&[topic, topicCallbacks] : self->topicCBs){
             bool match = false;
             int rc = mosquitto_topic_matches_sub(topic.c_str(), msg->topic, &match);
+            MQTT_DEBUG("Comparing '{}' == '{}'", topic.c_str(), msg->topic);
+            MQTT_DEBUG("Topic compare result: {}", match);
+
             if (rc != MOSQ_ERR_SUCCESS){
                 MQTT_WARN("Invalid input parameters, skipping");
                 continue;
@@ -196,7 +199,7 @@ namespace mqtt {
                 continue;
             }
 
-            for (auto callback : self->topicCBs[topic]){
+            for (const auto &callback : topicCallbacks){
                 callback(self, msg->topic, pl);
             }
         }

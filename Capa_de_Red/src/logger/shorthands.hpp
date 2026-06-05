@@ -21,4 +21,11 @@
 #define ENV_ERROR(...) TLOG("ENV", ERROR, __VA_ARGS__)
 #define ENV_CRITICAL(...) TLOG("ENV", CRITICAL, __VA_ARGS__)
 
+#define RULE_TRACE(...) TLOG("RULE", TRACE, __VA_ARGS__)
+#define RULE_DEBUG(...) TLOG("RULE", DEBUG, __VA_ARGS__)
+#define RULE_INFO(...) TLOG("RULE", INFO, __VA_ARGS__)
+#define RULE_WARN(...) TLOG("RULE", WARN, __VA_ARGS__)
+#define RULE_ERROR(...) TLOG("RULE", ERROR, __VA_ARGS__)
+#define RULE_CRITICAL(...) TLOG("RULE", CRITICAL, __VA_ARGS__)
+
 #endif

@@ -48,6 +48,8 @@ namespace mqtt {
         message_callback_t cb = [](auto, auto, auto){};
         topic_callbacks_t topicCBs = {};
 
+
+
         static void on_connect(struct mosquitto*, void*, int);
         static void on_message(struct mosquitto*, void*, const struct mosquitto_message*);
         static void on_disconnect(struct mosquitto *mosq, void *obj, int rc);

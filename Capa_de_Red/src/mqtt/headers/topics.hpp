@@ -59,20 +59,39 @@ namespace mqtt {
         operator const char*() const { return buf.data(); }
         operator std::string() const { return buf; }
 
-        auto operator/(const topic& other) const {
+        topic operator/(const topic& other) const {
             return buf + "/" + other.buf;
         }
+        topic operator/(const std::string& other) const {
+            return buf + "/" + other;
+        }
+        topic operator/(const char* other) const {
+            return buf + "/" + other;
+        }
+
+        static const topic ANY;
+        static const topic ALL;
 
         static const topic BASE;
+        static const topic ESP;
+
+        static const topic TEST;
+        static const topic CONTROL;
+
         static const topic PUB;
         static const topic SUB;
         static const topic HMM;
     };
 
-    inline const topic topic::BASE = "gna";
 
-    inline const topic topic::PUB = BASE/"esp32/control";
-    inline const topic topic::SUB = "test/topic";
+    inline const topic topic::ANY = "+";
+    inline const topic topic::ALL = "#";
+
+    inline const topic topic::TEST = "test";
+    inline const topic topic::CONTROL = "control";
+
+    inline const topic topic::PUB = TEST/CONTROL/"aaaa";
+    inline const topic topic::SUB = TEST/CONTROL/ALL;
 
     inline const topic topic::HMM = PUB/SUB;
 }

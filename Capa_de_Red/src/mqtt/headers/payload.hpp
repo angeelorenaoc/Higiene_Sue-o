@@ -4,8 +4,6 @@
 
 #include <string>
 
-#include "../../logger/shorthands.hpp"
-
 namespace mqtt {
     struct payload {
         std::string prefix;
