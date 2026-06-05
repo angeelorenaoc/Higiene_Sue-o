@@ -18,5 +18,10 @@ namespace logger {
         logger->set_level(spdlog::level::trace); // logger itself must allow all levels through
 
         spdlog::set_default_logger(logger);
+        spdlog::flush_every(std::chrono::seconds(1));
+    }
+
+    void shutdown(){
+        spdlog::shutdown();
     }
 }

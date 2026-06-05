@@ -4,6 +4,7 @@
 
 namespace logger {
     void setup();
+    void shutdown();
 }
 
 
