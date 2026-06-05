@@ -1,6 +1,6 @@
 #include "client.hpp"
 
-#include <mosquitto/broker_plugin.h>
+#include <mosquitto.h>
 #include <string>
 #include <stdexcept>
 #include <spdlog/fmt/fmt.h>
