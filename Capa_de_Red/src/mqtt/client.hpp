@@ -3,6 +3,8 @@
 #define MQTT_CLIENT_HPP
 
 #include <string>
+#include <unordered_map>
+#include <functional>
 
 #include <mosquitto.h>
 
@@ -12,7 +14,10 @@
 
 namespace mqtt {
 
-    // using message_callback = std::function<void(const topic& topic, const payload& payload)>;
+    class client;
+
+    using message_callback_t = std::function<void(client* self, const topic& topic, const payload& payload)>;
+    using topic_callbacks_t = std::unordered_map<std::string, std::vector<message_callback_t>>;
 
     class client {
     public:
@@ -31,7 +36,8 @@ namespace mqtt {
         bool publish(const topic& topic, const payload& payload);
         bool subscribe(const topic& topic);
 
-        // void setMessageCallback(message_callback cb = [](auto, auto){});
+        void setMessageCallback(message_callback_t cb);
+        void on(const topic& topic, const message_callback_t& cb);
 
     private:
         mosquitto* mosq = nullptr;
@@ -39,7 +45,8 @@ namespace mqtt {
         int port = setting::PORT;
 
         std::string certsPath = setting::CERTS_PATH;
-        // message_callback cb = [](const topic&, const payload&){};
+        message_callback_t cb = [](auto, auto, auto){};
+        topic_callbacks_t topicCBs = {};
 
         static void on_connect(struct mosquitto*, void*, int);
         static void on_message(struct mosquitto*, void*, const struct mosquitto_message*);

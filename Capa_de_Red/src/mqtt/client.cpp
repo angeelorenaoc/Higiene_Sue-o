@@ -4,6 +4,7 @@
 #include <mosquitto.h>
 #include <mosquitto/defs.h>
 #include <mosquitto/libcommon_string.h>
+#include <mosquitto/libcommon_topic.h>
 #include <mosquitto/libmosquitto.h>
 #include <mosquitto/libmosquitto_callbacks.h>
 #include <mosquitto/libmosquitto_connect.h>
@@ -17,7 +18,7 @@
 #include "headers/payload.hpp"
 #include "headers/settings.hpp"
 #include "headers/topics.hpp"
-#include "headers/commands.hpp"
+//#include "headers/commands.hpp"
 
 namespace mqtt {
     client::client(const std::string& host, int port) : host(host), port(port) {
@@ -179,11 +180,25 @@ namespace mqtt {
             return;
         }
 
-        MQTT_INFO("On topic '{}': {}", msg->topic, pl.message);
-        if (pl.message == "ON") {
-            self->publish(topic::PUB, payload::from(cmd::ON, "cmd"));
-        } else if (pl.message == "OFF") {
-            self->publish(topic::PUB, payload::from(cmd::OFF, "cmd"));
+        MQTT_INFO("On topic '{}': {}", msg->topic, payload);
+        self->cb(self, msg->topic, pl);
+
+
+        for (auto[topic, _] : self->topicCBs){
+            bool match = false;
+            int rc = mosquitto_topic_matches_sub(topic.c_str(), msg->topic, &match);
+            if (rc != MOSQ_ERR_SUCCESS){
+                MQTT_WARN("Invalid input parameters, skipping");
+                continue;
+            }
+            if (!match){
+                MQTT_DEBUG("Topics didnt match: {} != {}", topic, msg->topic);
+                continue;
+            }
+
+            for (auto callback : self->topicCBs[topic]){
+                callback(self, msg->topic, pl);
+            }
         }
     }
     void client::on_disconnect(struct mosquitto *mosq, void *obj, int rc) {
@@ -195,4 +210,10 @@ namespace mqtt {
             }
     }
 
+    void client::setMessageCallback(message_callback_t cb){
+        this->cb = cb;
+    }
+    void client::on(const topic& topic, const message_callback_t& cb){
+        topicCBs[topic].push_back(cb);
+    }
 }
