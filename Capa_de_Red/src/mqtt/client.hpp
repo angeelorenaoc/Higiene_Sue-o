@@ -17,6 +17,12 @@ namespace mqtt {
     class client {
     public:
         client(const std::string& host, int port);
+        client(const client&) = delete;
+        client(client&&) = delete;
+
+        client& operator=(const client&) = delete;
+        client& operator=(client&&) = delete;
+
         ~client();
 
         bool start();

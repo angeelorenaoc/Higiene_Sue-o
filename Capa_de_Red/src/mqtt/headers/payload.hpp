@@ -4,15 +4,34 @@
 
 #include <string>
 
+#include "../../logger/shorthands.hpp"
+
 namespace mqtt {
     struct payload {
+        std::string prefix;
         std::string message;
+        bool illformed = true;
 
-        std::string marshal(){
-            return message;
+        static payload from(std::string message, std::string prefix = {}) {
+            return {prefix, message, false};
+        }
+        std::string marshal() const {
+            if (prefix.empty()) {
+                return message;
+            }
+
+            return prefix + ":" + message;
         }
         static payload unmarshal(std::string payload){
-            return {payload};
+            auto pos = payload.find(":");
+            if (pos == payload.npos) {
+                MQTT_ERROR("Could not unmarshal message");
+                return {};
+            }
+
+            auto prefix = payload.substr(0, pos);
+            auto msg = payload.substr(pos + 1);
+            return {prefix, msg, false};
         }
     };
 }

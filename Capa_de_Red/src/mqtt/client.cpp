@@ -20,8 +20,7 @@
 #include "headers/commands.hpp"
 
 namespace mqtt {
-    client::client(const std::string& host, int port)
-        : host(host), port(port) {
+    client::client(const std::string& host, int port) : host(host), port(port) {
         MQTT_INFO("Initializing mosquitto");
         int rc = mosquitto_lib_init();
         if (rc != MOSQ_ERR_SUCCESS) {
@@ -29,7 +28,7 @@ namespace mqtt {
             return;
         }
 
-        MQTT_INFO("Connecting to {}:{}", host, port);
+        MQTT_TRACE("Creating mosquitto client instance");
         mosq = mosquitto_new(NULL, true, this);
         if (mosq == NULL) {
             MQTT_ERROR("Mosquitto creation failed: {}", mosquitto_strerror(errno));
@@ -61,6 +60,7 @@ namespace mqtt {
         mosquitto_connect_callback_set(mosq, client::on_connect);
         mosquitto_message_callback_set(mosq, client::on_message);
         mosquitto_disconnect_callback_set(mosq, client::on_disconnect);
+        start();
     }
 
     client::~client() {
@@ -69,7 +69,7 @@ namespace mqtt {
     }
 
     bool client::start() {
-        MQTT_TRACE("Connecting mosquitto thread");
+        MQTT_INFO("Connecting to {}:{}", host, port);
         int rc = mosquitto_connect_async(mosq, host.c_str(), port, setting::KEEP_ALIVE);
         if (rc != MOSQ_ERR_SUCCESS) {
             auto errMsg = fmt::format("Failed to connect: {}", mosquitto_strerror(rc));
@@ -132,14 +132,13 @@ namespace mqtt {
                 }
             }
         }
-
-        mosquitto_lib_cleanup();
         return true;
     }
 
     bool client::publish(const topic& topic, const payload& payload) {
         MQTT_TRACE("Publishing on topic '{}'", topic);
-        int rc = mosquitto_publish(mosq, NULL, topic, payload.message.size(), payload.message.c_str(), 1, false);
+        auto msg = payload.marshal();
+        int rc = mosquitto_publish(mosq, NULL, topic, msg.size(), msg.c_str(), 1, false);
         if (rc != MOSQ_ERR_SUCCESS) {
             MQTT_ERROR("Failed to publish payload: {}", mosquitto_strerror(rc));
             return false;
@@ -173,13 +172,18 @@ namespace mqtt {
     void client::on_message(mosquitto* mosq, void* obj, const mosquitto_message* msg) {
         auto* self = static_cast<client*>(obj);
 
-        auto pl = payload::unmarshal(std::string((char*)msg->payload, msg->payloadlen));
-        MQTT_INFO("On topic '{}': {}", msg->topic, pl.message);
+        std::string payload = std::string((char*)msg->payload, msg->payloadlen);
+        auto pl = payload::unmarshal(payload);
+        if (pl.illformed){
+            MQTT_WARN("Illformed message received on topic '{}': {}", msg->topic, payload);
+            return;
+        }
 
+        MQTT_INFO("On topic '{}': {}", msg->topic, pl.message);
         if (pl.message == "ON") {
-            self->publish(topic::PUB, payload{cmd::ON});
+            self->publish(topic::PUB, payload::from(cmd::ON, "cmd"));
         } else if (pl.message == "OFF") {
-            self->publish(topic::PUB, payload{cmd::OFF});
+            self->publish(topic::PUB, payload::from(cmd::OFF, "cmd"));
         }
     }
     void client::on_disconnect(struct mosquitto *mosq, void *obj, int rc) {

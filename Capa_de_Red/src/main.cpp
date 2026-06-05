@@ -11,18 +11,17 @@
 
 std::atomic<bool> running{true};
 
-void onStopSignal(int){
-    SPDLOG_INFO("[SIGNAL]: Process stop requested, terminating...");
+void onStopSignal(int sig){
+    SPDLOG_INFO("[SIGNAL]: Process stop requested ({}), terminating...", sig);
     running = false;
 }
 
 int main() {
     std::signal(SIGINT, onStopSignal);
+    std::signal(SIGTERM, onStopSignal);
     logger::setup();
-
     mqtt::client mqtt(mqtt::setting::HOST, mqtt::setting::PORT);
 
-    mqtt.start();
     mqtt.subscribe("#");
     mqtt.subscribe(mqtt::topic::SUB);
     mqtt.publish(mqtt::topic::PUB, mqtt::payload{mqtt::cmd::INIT});
