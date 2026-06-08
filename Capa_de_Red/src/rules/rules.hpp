@@ -7,7 +7,7 @@
 namespace rules {
 
     template<typename ...type_t>
-    using predicate_t = std::function<bool(type_t...)>;
+    using predicate_t = std::move_only_function<bool(type_t...)>;
 
     template<typename ...type_t>
     struct rule {

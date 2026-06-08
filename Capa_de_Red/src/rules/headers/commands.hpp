@@ -5,17 +5,20 @@
 #include "../../mqtt/headers/payload.hpp"
 
 namespace rules::cmd {
-    const auto INIT = mqtt::payload::from("init", "cmd");
-    const auto REST = mqtt::payload::from("rest", "cmd");
-
-    const auto ON = mqtt::payload::from("on", "cmd");
-    const auto OFF = mqtt::payload::from("off", "cmd");
-
-    const auto MOVE_A = mqtt::payload::from("1", "cmd");
-    const auto MOVE_B = mqtt::payload::from("1", "cmd");
-    const auto MOVE_C = mqtt::payload::from("1", "cmd");
-
     inline mqtt::payload from(const char* cmd){return mqtt::payload::from(cmd, "cmd");}
+    inline mqtt::payload custom(const char* cmd, const char* type){return mqtt::payload::from(cmd, type);}
+
+    const auto INIT = from("init");
+    const auto REST = from("rest");
+
+    const auto ON = from("on");
+    const auto OFF = from("off");
+
+    const auto MOVE_A = from("1");
+    const auto MOVE_B = from("1");
+    const auto MOVE_C = from("1");
+
+
 }
 
 #endif

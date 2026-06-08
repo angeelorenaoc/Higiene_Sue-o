@@ -28,4 +28,10 @@
 #define RULE_ERROR(...) TLOG("RULE", ERROR, __VA_ARGS__)
 #define RULE_CRITICAL(...) TLOG("RULE", CRITICAL, __VA_ARGS__)
 
+#define DB_TRACE(...) TLOG("DB", TRACE, __VA_ARGS__)
+#define DB_DEBUG(...) TLOG("DB", DEBUG, __VA_ARGS__)
+#define DB_INFO(...) TLOG("DB", INFO, __VA_ARGS__)
+#define DB_WARN(...) TLOG("DB", WARN, __VA_ARGS__)
+#define DB_ERROR(...) TLOG("DB", ERROR, __VA_ARGS__)
+#define DB_CRITICAL(...) TLOG("DB", CRITICAL, __VA_ARGS__)
 #endif

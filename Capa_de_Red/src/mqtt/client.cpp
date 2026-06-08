@@ -2,23 +2,15 @@
 
 #include <cerrno>
 #include <mosquitto.h>
-#include <mosquitto/defs.h>
-#include <mosquitto/libcommon_string.h>
-#include <mosquitto/libcommon_topic.h>
-#include <mosquitto/libmosquitto.h>
-#include <mosquitto/libmosquitto_callbacks.h>
-#include <mosquitto/libmosquitto_connect.h>
-#include <mosquitto/libmosquitto_loop.h>
 #include <string>
 #include <stdexcept>
 #include <spdlog/fmt/fmt.h>
 
-#include "../logger/shorthands.hpp"
-
 #include "headers/payload.hpp"
 #include "headers/settings.hpp"
 #include "headers/topics.hpp"
-//#include "headers/commands.hpp"
+
+#include "../logger/shorthands.hpp"
 
 namespace mqtt {
     client::client(const std::string& host, int port) : host(host), port(port) {
@@ -147,7 +139,6 @@ namespace mqtt {
 
         return true;
     }
-
     bool client::subscribe(const topic& topic) {
         MQTT_DEBUG("Subscribing to topic '{}'", topic);
         int rc = mosquitto_subscribe(mosq, nullptr, topic, setting::QOS);

@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.23)
 project(sleep_monitor)
 
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(SQLite3 REQUIRED)
 find_package(nlohmann_json REQUIRED)
@@ -10,8 +13,14 @@ add_subdirectory(src/vendor/spdlog)
 
 add_executable(sleep_monitor
     src/main.cpp
-    src/mqtt/client.cpp
     src/logger/setup.cpp
+    src/mqtt/client.cpp
+    src/rules/rules.cpp
+    src/db/sqlite_db.cpp
+    src/db/migrations.cpp
+    src/db/queries.cpp
+    src/db/errors.cpp
+    src/utils/parse.cpp
 )
 
 target_link_libraries(sleep_monitor
