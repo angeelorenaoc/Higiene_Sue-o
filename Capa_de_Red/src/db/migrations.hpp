@@ -5,7 +5,7 @@
 #include "sqlite_db.hpp"
 
 namespace db {
-    sqlite::result_t<> create_schema(sqlite& db);
+    sqlite::expected_t<> create_schema(sqlite& db);
 }
 
 #endif

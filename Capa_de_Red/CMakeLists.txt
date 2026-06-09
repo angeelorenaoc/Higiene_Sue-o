@@ -8,6 +8,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(SQLite3 REQUIRED)
 find_package(nlohmann_json REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 add_subdirectory(src/vendor/spdlog)
 
@@ -21,6 +22,7 @@ add_executable(sleep_monitor
     src/db/queries.cpp
     src/db/errors.cpp
     src/utils/parse.cpp
+    src/utils/crypto.cpp
 )
 
 target_link_libraries(sleep_monitor
@@ -28,6 +30,8 @@ target_link_libraries(sleep_monitor
     nlohmann_json::nlohmann_json
     mosquitto
     spdlog::spdlog
+    OpenSSL::SSL
+    OpenSSL::Crypto
 )
 
 target_compile_definitions(sleep_monitor

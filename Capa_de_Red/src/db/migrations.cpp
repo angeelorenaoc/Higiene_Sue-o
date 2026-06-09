@@ -1,12 +1,18 @@
 #include "migrations.hpp"
 
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <filesystem>
+
 #include "../logger/shorthands.hpp"
+#include "sqlite_db.hpp"
 
 namespace db {
-    sqlite::result_t<> create_schema(sqlite& db) {
+    sqlite::expected_t<> create_schema(sqlite& db) {
         DB_DEBUG("Creating schema");
 
-        if (auto r = db.exec(R"(
+        if (auto r = db.raw_exec(R"(
             CREATE TABLE IF NOT EXISTS readings (
                 id           INTEGER PRIMARY KEY AUTOINCREMENT,
                 reading_type TEXT NOT NULL CHECK (
@@ -19,7 +25,7 @@ namespace db {
             );
         )"); !r) return r;
 
-        if (auto r = db.exec(R"(
+        if (auto r = db.raw_exec(R"(
             CREATE TABLE IF NOT EXISTS config (
                 id             INTEGER PRIMARY KEY AUTOINCREMENT,
                 reading_type   TEXT NOT NULL CHECK (
@@ -33,7 +39,7 @@ namespace db {
             );
         )"); !r) return r;
 
-        if (auto r = db.exec(R"(
+        if (auto r = db.raw_exec(R"(
             CREATE TABLE IF NOT EXISTS rules (
                 id         INTEGER PRIMARY KEY AUTOINCREMENT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -42,7 +48,7 @@ namespace db {
             );
         )"); !r) return r;
 
-        if (auto r = db.exec(R"(
+        if (auto r = db.raw_exec(R"(
             CREATE TABLE IF NOT EXISTS actuator_log (
                 id         INTEGER PRIMARY KEY AUTOINCREMENT,
                 actuator   TEXT NOT NULL,
@@ -57,11 +63,14 @@ namespace db {
             );
         )"); !r) return r;
 
-        if (auto r = db.exec("CREATE INDEX IF NOT EXISTS idx_readings_type ON readings(reading_type);"); !r) return r;
-        if (auto r = db.exec("CREATE INDEX IF NOT EXISTS idx_readings_deleted ON readings(deleted_at);"); !r) return r;
+        if (auto r = db.raw_exec("CREATE INDEX IF NOT EXISTS idx_readings_type ON readings(reading_type);"); !r) return r;
+        if (auto r = db.raw_exec("CREATE INDEX IF NOT EXISTS idx_readings_deleted ON readings(deleted_at);"); !r) return r;
 
         DB_INFO("Schema ready");
         return {};
     }
+
+
+
 
 }

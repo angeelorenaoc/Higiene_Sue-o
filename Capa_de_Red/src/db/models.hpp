@@ -3,8 +3,14 @@
 #define MODELS_HPP
 
 #include <string>
+#include <filesystem>
 
 namespace db {
+    struct migration {
+        int version;
+        std::filesystem::path path;
+    };
+
     struct reading {
         int id;
         std::string reading_type;

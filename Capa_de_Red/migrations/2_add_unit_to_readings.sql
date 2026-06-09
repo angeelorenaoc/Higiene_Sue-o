@@ -1,0 +1,2 @@
+ALTER TABLE readings
+ADD COLUMN unit TEXT;

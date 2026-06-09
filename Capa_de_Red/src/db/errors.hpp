@@ -14,6 +14,11 @@ namespace db {
     };
 
     std::string errorToString(Error e);
+
+    enum Result {
+        DONE,
+        ROW,
+    };
 }
 
 template <>

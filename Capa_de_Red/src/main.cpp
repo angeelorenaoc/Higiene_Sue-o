@@ -1,7 +1,9 @@
 #include <thread>
 #include <csignal>
 #include <atomic>
+#include <vector>
 
+#include "db/models.hpp"
 #include "db/sqlite_db.hpp"
 #include "logger/setup.hpp"
 #include "logger/shorthands.hpp"
@@ -50,9 +52,8 @@ int main() {
     mqtt::client mqtt(mqtt::setting::HOST, mqtt::setting::PORT);
     db::sqlite database;
 
-    if (auto res = database.open("sweetdreams.sqlite")
-                        .and_then([&]{return db::create_schema(database);});
-        !res) {
+
+    if (auto res = database.start("sweetdreams.sqlite", "./migrations"); !res) {
         DB_CRITICAL("Database startup failed: {}", res.error());
         return -1;
     }

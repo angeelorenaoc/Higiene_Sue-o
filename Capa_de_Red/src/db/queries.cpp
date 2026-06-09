@@ -4,38 +4,40 @@
 #include "models.hpp"
 
 namespace db {
-    sqlite::result_t<> insert_reading(sqlite& db, const std::string& type, double value) {
-        DB_DEBUG("Inserting reading: {} = {}", type, value);
+    sqlite::expected_t<> insert_reading(sqlite& db, const std::string& type, double value) {
+            DB_DEBUG("Inserting reading: {} = {}", type, value);
+            const char *sql = "";
+            sqlite::stmt_guard g;
 
-        sqlite::stmt_guard g;
-        if (sqlite3_prepare_v2(db.db_, R"(
-            INSERT INTO readings (reading_type, value) VALUES (?, ?);
-        )", -1, g.ptr(), nullptr) != SQLITE_OK) {
-            DB_ERROR("prepare failed: {}", sqlite3_errmsg(db.db_));
-            return std::unexpected(Error::FAILED);
+            sql = R"(INSERT INTO readings (reading_type, value) VALUES (?, ?);)";
+
+            if (auto res = db.prepare(sql); !res){
+                return std::unexpected(res.error());
+            } else {
+                g.stmt = res.value();
+            }
+
+            sqlite3_bind_text(g.get(), 1, type.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_double(g.get(), 2, value);
+
+            if (sqlite3_step(g.get()) != SQLITE_DONE) {
+                DB_ERROR("insert_reading failed: {}", sqlite3_errmsg(db.handle));
+                return std::unexpected(Error::FAILED);
+            }
+
+            DB_DEBUG("Reading inserted");
+            return {};
         }
-
-        sqlite3_bind_text(g.get(), 1, type.c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_double(g.get(), 2, value);
-
-        if (sqlite3_step(g.get()) != SQLITE_DONE) {
-            DB_ERROR("insert_reading failed: {}", sqlite3_errmsg(db.db_));
-            return std::unexpected(Error::FAILED);
-        }
-
-        DB_DEBUG("Reading inserted");
-        return {};
-    }
-    sqlite::result_t<std::vector<reading>> fetch_active_readings(sqlite& db) {
+    sqlite::expected_t<std::vector<reading>> fetch_active_readings(sqlite& db) {
         DB_DEBUG("Fetching active readings");
 
         sqlite::stmt_guard g;
-        if (sqlite3_prepare_v2(db.db_, R"(
+        if (sqlite3_prepare_v2(db.handle, R"(
             SELECT id, reading_type, value, created_at
             FROM readings
             WHERE deleted_at IS NULL;
         )", -1, g.ptr(), nullptr) != SQLITE_OK) {
-            DB_ERROR("prepare failed: {}", sqlite3_errmsg(db.db_));
+            DB_ERROR("prepare failed: {}", sqlite3_errmsg(db.handle));
             return std::unexpected(Error::FAILED);
         }
 
@@ -53,14 +55,14 @@ namespace db {
         return rows;
     }
 
-    sqlite::result_t<> insert_config(sqlite& db, const std::string& reading_type, const std::string& threshold_type, double value) {
+    sqlite::expected_t<> insert_config(sqlite& db, const std::string& reading_type, const std::string& threshold_type, double value) {
         DB_DEBUG("Inserting config: {} {} = {}", reading_type, threshold_type, value);
 
         sqlite::stmt_guard g;
-        if (sqlite3_prepare_v2(db.db_, R"(
+        if (sqlite3_prepare_v2(db.handle, R"(
             INSERT INTO config (reading_type, threshold_type, value) VALUES (?, ?, ?);
         )", -1, g.ptr(), nullptr) != SQLITE_OK) {
-            DB_ERROR("prepare failed: {}", sqlite3_errmsg(db.db_));
+            DB_ERROR("prepare failed: {}", sqlite3_errmsg(db.handle));
             return std::unexpected(Error::FAILED);
         }
 
@@ -69,25 +71,25 @@ namespace db {
         sqlite3_bind_double(g.get(), 3, value);
 
         if (sqlite3_step(g.get()) != SQLITE_DONE) {
-            DB_ERROR("insert_config failed: {}", sqlite3_errmsg(db.db_));
+            DB_ERROR("insert_config failed: {}", sqlite3_errmsg(db.handle));
             return std::unexpected(Error::FAILED);
         }
 
         DB_DEBUG("Config inserted");
         return {};
     }
-    sqlite::result_t<config> get_latest_config(sqlite& db, const std::string& reading_type, const std::string& threshold_type) {
+    sqlite::expected_t<config> get_latest_config(sqlite& db, const std::string& reading_type, const std::string& threshold_type) {
         DB_DEBUG("Fetching config: {} {}", reading_type, threshold_type);
 
         sqlite::stmt_guard g;
-        if (sqlite3_prepare_v2(db.db_, R"(
+        if (sqlite3_prepare_v2(db.handle, R"(
             SELECT id, reading_type, threshold_type, value, created_at
             FROM config
             WHERE reading_type = ? AND threshold_type = ?
             ORDER BY created_at DESC
             LIMIT 1;
         )", -1, g.ptr(), nullptr) != SQLITE_OK) {
-            DB_ERROR("prepare failed: {}", sqlite3_errmsg(db.db_));
+            DB_ERROR("prepare failed: {}", sqlite3_errmsg(db.handle));
             return std::unexpected(Error::FAILED);
         }
 
@@ -111,14 +113,14 @@ namespace db {
         return c;
     }
 
-    sqlite::result_t<> insert_actuator_log(sqlite& db, const std::string& actuator, const std::string& action, int config_id, int rule_id) {
+    sqlite::expected_t<> insert_actuator_log(sqlite& db, const std::string& actuator, const std::string& action, int config_id, int rule_id) {
         DB_DEBUG("Inserting actuator log: {} {}", actuator, action);
 
         sqlite::stmt_guard g;
-        if (sqlite3_prepare_v2(db.db_, R"(
+        if (sqlite3_prepare_v2(db.handle, R"(
             INSERT INTO actuator_log (actuator, action, config_id, rule_id) VALUES (?, ?, ?, ?);
         )", -1, g.ptr(), nullptr) != SQLITE_OK) {
-            DB_ERROR("prepare failed: {}", sqlite3_errmsg(db.db_));
+            DB_ERROR("prepare failed: {}", sqlite3_errmsg(db.handle));
             return std::unexpected(Error::FAILED);
         }
 
@@ -128,7 +130,7 @@ namespace db {
         sqlite3_bind_int(g.get(),  4, rule_id);
 
         if (sqlite3_step(g.get()) != SQLITE_DONE) {
-            DB_ERROR("insert_actuator_log failed: {}", sqlite3_errmsg(db.db_));
+            DB_ERROR("insert_actuator_log failed: {}", sqlite3_errmsg(db.handle));
             return std::unexpected(Error::FAILED);
         }
 
@@ -136,16 +138,16 @@ namespace db {
         return {};
     }
 
-    sqlite::result_t<std::vector<actuator_log>> fetch_active_actuator_logs(sqlite& db) {
+    sqlite::expected_t<std::vector<actuator_log>> fetch_active_actuator_logs(sqlite& db) {
         DB_DEBUG("Fetching active actuator logs");
 
         sqlite::stmt_guard g;
-        if (sqlite3_prepare_v2(db.db_, R"(
+        if (sqlite3_prepare_v2(db.handle, R"(
             SELECT id, actuator, action, config_id, rule_id, created_at
             FROM actuator_log
             WHERE deleted_at IS NULL;
         )", -1, g.ptr(), nullptr) != SQLITE_OK) {
-            DB_ERROR("prepare failed: {}", sqlite3_errmsg(db.db_));
+            DB_ERROR("prepare failed: {}", sqlite3_errmsg(db.handle));
             return std::unexpected(Error::FAILED);
         }
 
@@ -165,25 +167,25 @@ namespace db {
         return rows;
     }
 
-    sqlite::result_t<> soft_delete(sqlite& db, const std::string& table, int id) {
+    sqlite::expected_t<> soft_delete(sqlite& db, const std::string& table, int id) {
         DB_DEBUG("Soft deleting id {} from {}", id, table);
 
         const std::string sql = "UPDATE " + table + " SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL;";
 
         sqlite::stmt_guard g;
-        if (sqlite3_prepare_v2(db.db_, sql.c_str(), -1, g.ptr(), nullptr) != SQLITE_OK) {
-            DB_ERROR("prepare failed: {}", sqlite3_errmsg(db.db_));
+        if (sqlite3_prepare_v2(db.handle, sql.c_str(), -1, g.ptr(), nullptr) != SQLITE_OK) {
+            DB_ERROR("prepare failed: {}", sqlite3_errmsg(db.handle));
             return std::unexpected(Error::FAILED);
         }
 
         sqlite3_bind_int(g.get(), 1, id);
 
         if (sqlite3_step(g.get()) != SQLITE_DONE) {
-            DB_ERROR("soft_delete failed: {}", sqlite3_errmsg(db.db_));
+            DB_ERROR("soft_delete failed: {}", sqlite3_errmsg(db.handle));
             return std::unexpected(Error::FAILED);
         }
 
-        if (sqlite3_changes(db.db_) == 0) {
+        if (sqlite3_changes(db.handle) == 0) {
             DB_WARN("No row affected for id {} in {}", id, table);
             return std::unexpected(Error::NOT_PRESENT);
         }
