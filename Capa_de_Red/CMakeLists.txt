@@ -16,11 +16,10 @@ add_executable(sleep_monitor
     src/main.cpp
     src/logger/setup.cpp
     src/mqtt/client.cpp
-    src/rules/rules.cpp
     src/db/sqlite_db.cpp
-    src/db/migrations.cpp
-    src/db/queries.cpp
     src/db/errors.cpp
+    src/repository/repository.cpp
+    src/rules/rules.cpp
     src/utils/parse.cpp
     src/utils/crypto.cpp
 )

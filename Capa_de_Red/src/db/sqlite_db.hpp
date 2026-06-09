@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef SQLITE_DB_HPP
-#define SQLITE_DB_HPP
+#ifndef DB_SQLITE_DB_HPP
+#define DB_SQLITE_DB_HPP
 
 #include <cstdint>
 #include <type_traits>
@@ -76,6 +76,12 @@ namespace db {
             using result_t = std::invoke_result_t<mapper_t, sqlite3_stmt*>;
             return prep_exec<result_t>(query, std::forward<mapper_t>(mapper), std::forward<Args>(args)...);
         }
+
+        int64_t last_insert_id() { return sqlite3_last_insert_rowid(handle); }
+
+        /// CRUD Operations
+
+        expected_t<> insert(std::string_view table){ return {}; }
 
         /// Column specifiers
 
@@ -195,15 +201,15 @@ namespace db {
         expected_t<> verify_migrations(const std::filesystem::path& path);
 
         /// Others
-        friend expected_t<> create_schema(sqlite& db);
+        //friend expected_t<> create_schema(sqlite& db);
 
-        friend expected_t<> insert_reading(sqlite& db, const std::string& type, double value);
-        friend expected_t<> insert_config(sqlite& db, const std::string& reading_type, const std::string& threshold_type, double value);
-        friend expected_t<config> get_latest_config(sqlite& db, const std::string& reading_type, const std::string& threshold_type);
-        friend expected_t<std::vector<reading>> fetch_active_readings(sqlite& db);
-        friend expected_t<> insert_actuator_log(sqlite& db, const std::string& actuator, const std::string& action, int config_id, int rule_id);
-        friend expected_t<std::vector<actuator_log>> fetch_active_actuator_logs(sqlite& db);
-        friend expected_t<> soft_delete(sqlite& db, const std::string& table, int id);
+        //friend expected_t<> insert_reading(sqlite& db, const std::string& type, double value);
+        //friend expected_t<> insert_config(sqlite& db, const std::string& reading_type, const std::string& threshold_type, double value);
+        //friend expected_t<config> get_latest_config(sqlite& db, const std::string& reading_type, const std::string& threshold_type);
+        //friend expected_t<std::vector<reading>> fetch_active_readings(sqlite& db);
+        //friend expected_t<> insert_actuator_log(sqlite& db, const std::string& actuator, const std::string& action, int config_id, int rule_id);
+        //friend expected_t<std::vector<actuator_log>> fetch_active_actuator_logs(sqlite& db);
+        //friend expected_t<> soft_delete(sqlite& db, const std::string& table, int id);
 
     };
 }

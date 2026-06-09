@@ -1,6 +1,6 @@
 #pragma once
-#ifndef ERRORS_HPP
-#define ERRORS_HPP
+#ifndef DB_ERRORS_HPP
+#define DB_ERRORS_HPP
 
 #include <string>
 #include <spdlog/fmt/fmt.h>

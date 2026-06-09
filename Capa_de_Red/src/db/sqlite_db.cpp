@@ -55,16 +55,16 @@ namespace db {
 
     /// Column specifiers
 
-    inline int sqlite::column_int(sqlite3_stmt* stmt, int column){
+    int sqlite::column_int(sqlite3_stmt* stmt, int column){
         return sqlite3_column_int(stmt, column);
     }
-    inline int64_t sqlite::column_int64(sqlite3_stmt* stmt, int column){
+    int64_t sqlite::column_int64(sqlite3_stmt* stmt, int column){
         return sqlite3_column_int64(stmt, column);
     }
-    inline double sqlite::column_double(sqlite3_stmt* stmt, int column){
+    double sqlite::column_double(sqlite3_stmt* stmt, int column){
         return sqlite3_column_double(stmt, column);
     }
-    inline std::string sqlite::column_text(sqlite3_stmt* stmt, int column) {
+    std::string sqlite::column_text(sqlite3_stmt* stmt, int column) {
         auto ptr = sqlite3_column_text(stmt, column);
 
         return ptr ? reinterpret_cast<const char*>(ptr) : "";
