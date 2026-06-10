@@ -33,6 +33,8 @@
 #define MQTT_TOPIC_HUMIDITY        "sensor/humedad"
 #define MQTT_TOPIC_AUDIO           "sensor/audio"
 #define MQTT_TOPIC_LIGHT           "sensor/luz"
+#define MQTT_TOPIC_ALARM           "sensor/alarm"
+#define MQTT_TOPIC_MOTOR           "sensor/motor"
 
 
 // ==========================// PROTOTIPOS DE FUNCIONES// ========================== //
@@ -47,3 +49,6 @@ bool mqtt_is_connected(void);
 void pub_light(float light_value);
 void pub_audio(float audio_value);
 void pub_dht(dht11_data_t *data);
+
+int subs_motor();
+int subs_alarm();

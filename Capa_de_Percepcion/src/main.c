@@ -44,7 +44,8 @@ static QueueHandle_t dht_queue;
 static buzzer_t buzzer;
 static motor_t motor;
 
-int band_system = false;
+int alarm_state = false;
+int motor_state = false;
 
 static void taskADC(void *pvParameters)
 {
@@ -110,7 +111,7 @@ static void task_buzzer(void *arg)
 {
     while(1)
     {
-        if(band_system)
+        if(alarm_state)
         {
             buzzer_set_frequency(&buzzer, 2000);
             buzzer_beep(&buzzer, 200, 150, 3);
@@ -134,7 +135,7 @@ static void task_buzzer(void *arg)
 void motor_task(void *pvParameters)
 {
     int direction = 1;
-    int past_state = band_system;
+    int past_state = motor_state;
     int is_on = 0;
     const uint32_t duty = 1023;  // velocidad media
 
@@ -145,7 +146,7 @@ void motor_task(void *pvParameters)
             motor_stop(&motor);
             RTOS_delay(200);
         }
-        else if (!band_system)
+        else if (!motor_state)
         {
             motor_stop(&motor);
             RTOS_delay(200);
@@ -165,14 +166,14 @@ void motor_task(void *pvParameters)
             direction = !direction;
         }
         
-        if (past_state == band_system)
+        if (past_state == motor_state)
         {
             is_on = 0;
         }else
         {
             is_on = 1;
         }
-        past_state = band_system;
+        past_state = motor_state;
     }
 }
  
@@ -180,7 +181,7 @@ void motor_task(void *pvParameters)
 static void task_sunrise(void *arg)
 {
     while(1){
-        tira_sunrise_from_array(3000, &band_system);
+        tira_sunrise_from_array(3000, &alarm_state);
         RTOS_delay(1000);
     }
 }
@@ -224,33 +225,6 @@ static void taskLight(void *pvParameters)
         RTOS_delay(1000);
     }
 }
-
-// TAREA MONITOR IP
-/*
-void ip_monitor_task(void *pvParameters)
-{
-    esp_netif_ip_info_t ip_info;
-    while (1)
-    {
-        xEventGroupWaitBits(wifi_event_group,
-                            WIFI_CONNECTED_BIT,
-                            pdFALSE,
-                            pdFALSE,
-                            portMAX_DELAY);
-        if (sta_netif != NULL)
-        {
-            if (esp_netif_get_ip_info(sta_netif, &ip_info) == ESP_OK)
-            {
-                ESP_LOGI("NET",
-                         "Servidor: http://" IPSTR " | MASK: " IPSTR " | GW: " IPSTR,
-                         IP2STR(&ip_info.ip),
-                         IP2STR(&ip_info.netmask),
-                         IP2STR(&ip_info.gw));
-            }
-        }
-        vTaskDelay(pdMS_TO_TICKS(6000));
-    }
-}*/
 
 //  Main
 void app_main(void)

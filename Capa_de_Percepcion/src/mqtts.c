@@ -20,7 +20,8 @@ static int retry_num = 0;
 
 static esp_mqtt_client_handle_t mqtt_client = NULL;
 static bool mqtt_connected = false;
-
+extern int motor_state;
+extern int alarm_state;
 
 // ==========================// CERTIFICADOS // ==========================
 static const char ca_cert[] = 
@@ -199,6 +200,16 @@ void pub_dht(dht11_data_t *data)
     }
 }
 
+int subs_motor(void)
+{
+    return motor_state;
+}
+
+int subs_alarm(void)
+{
+    return alarm_state;
+}
+
 // ==========================// EVENTOS WIFI// ==========================
 
 static void wifi_event_handler(void *arg,esp_event_base_t event_base,int32_t event_id,void *event_data)
@@ -363,6 +374,15 @@ static void mqtt_event_handler(void *handler_args,esp_event_base_t base,int32_t 
         case MQTT_EVENT_CONNECTED:
             ESP_LOGI(TAG, "Conectado al broker MQTT por TLS");
             mqtt_connected = true;
+            esp_mqtt_client_subscribe(
+                mqtt_client,
+                MQTT_TOPIC_MOTOR,
+                1);
+
+            esp_mqtt_client_subscribe(
+                mqtt_client,
+                MQTT_TOPIC_ALARM,
+                1);
             break;
 
         case MQTT_EVENT_DISCONNECTED:
@@ -384,6 +404,36 @@ static void mqtt_event_handler(void *handler_args,esp_event_base_t base,int32_t 
                 ESP_LOGE(TAG, "Cert verify flags: 0x%x", event->error_handle->esp_tls_cert_verify_flags);
             }
 
+            break;
+
+        case MQTT_EVENT_DATA:
+        {
+            char topic[event->topic_len + 1];
+            char payload[event->data_len + 1];
+
+            memcpy(topic, event->topic, event->topic_len);
+            topic[event->topic_len] = '\0';
+
+            memcpy(payload, event->data, event->data_len);
+            payload[event->data_len] = '\0';
+
+            ESP_LOGI(TAG, "Topic: %s", topic);
+            ESP_LOGI(TAG, "Payload: %s", payload);
+
+            if (strcmp(topic, MQTT_TOPIC_ALARM) == 0)
+            {
+                alarm_state = (atoi(payload) != 0);
+
+                ESP_LOGI(TAG, "Alarm state: %d", alarm_state);
+            }
+
+            if (strcmp(topic, MQTT_TOPIC_MOTOR) == 0)
+            {
+                motor_state = (atoi(payload) != 0);
+
+                ESP_LOGI(TAG, "Motor state: %d", motor_state);
+            }
+        }
             break;
 
         default:
