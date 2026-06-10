@@ -41,26 +41,25 @@ namespace repo {
         });
     }
     expected_t<> repository::insert_rule(int reading_type_id, int condition_type_id, int actuator_type_id, double condition_value) {
+        auto existing = database.query(
+            [](sqlite3_stmt* stmt) { return db::sqlite::column_int(stmt, 0); },
+            R"(
+                SELECT id FROM active_rules
+                WHERE id_reading_type = ? AND id_actuator_type = ?
+                LIMIT 1;
+            )",
+            reading_type_id, actuator_type_id
+        );
+
+        if (!existing) return std::unexpected(existing.error());
+
+        // Soft delete the existing rule if found
+        if (!existing->empty()) {
+            if (auto res = soft_delete("rules", existing->front()); !res)
+                return res;
+        }
+
         return database.transaction([&]() -> expected_t<> {
-            // Find the active rule for same reading + actuator type, if any
-            auto existing = database.query(
-                [](sqlite3_stmt* stmt) { return db::sqlite::column_int(stmt, 0); },
-                R"(
-                    SELECT id FROM active_rules
-                    WHERE id_reading_type = ? AND id_actuator_type = ?
-                    LIMIT 1;
-                )",
-                reading_type_id, actuator_type_id
-            );
-
-            if (!existing) return std::unexpected(existing.error());
-
-            // Soft delete the existing rule if found
-            if (!existing->empty()) {
-                if (auto res = soft_delete("rules", existing->front()); !res)
-                    return res;
-            }
-
             // Insert the new rule
             return database.exec(
                 R"(
@@ -83,7 +82,7 @@ namespace repo {
         });
     }
 
-    expected_t<std::vector<reading>> repository::get_readings(std::optional<int> type_id, std::optional<std::string> from, std::optional<std::string> to) {
+    expected_t<std::vector<reading>> repository::get_readings(std::optional<int> type_id, std::optional<std::string> from, std::optional<std::string> to, std::optional<int> limit) {
         std::string sql = R"(
                 SELECT id, id_reading_type, value, created_at
                 FROM readings
@@ -94,32 +93,45 @@ namespace repo {
         if (from)    sql += " AND created_at >= ?";
         if (to)      sql += " AND created_at <= ?";
         sql += " ORDER BY created_at DESC";
-
-        auto mapper = [](sqlite3_stmt* s) -> reading {
-            return {
-                .id = db::sqlite::column_int(s, 0),
-                .id_reading_type = db::sqlite::column_int(s, 1),
-                .value = db::sqlite::column_double(s, 2),
-                .created_at = db::sqlite::column_text(s, 3)
-            };
-        };
+        if (limit)   sql += " LIMIT ?";
 
         // bind only the params that are set
-        if (type_id && from && to)
-            return database.query(mapper, sql, *type_id, *from, *to);
-        if (type_id && from)
-            return database.query(mapper, sql, *type_id, *from);
-        if (type_id && to)
-            return database.query(mapper, sql, *type_id, *to);
-        if (from && to)
-            return database.query(mapper, sql, *from, *to);
-        if (type_id)
-            return database.query(mapper, sql, *type_id);
-        if (from)
-            return database.query(mapper, sql, *from);
-        if (to)
-            return database.query(mapper, sql, *to);
-        return database.query(mapper, sql);
+        if (limit){
+            if (type_id && from && to)
+                return database.query(reading::db_mapper, sql, *type_id, *from, *to, *limit);
+            if (type_id && from)
+                return database.query(reading::db_mapper, sql, *type_id, *from, *limit);
+            if (type_id && to)
+                return database.query(reading::db_mapper, sql, *type_id, *to, *limit);
+            if (from && to)
+                return database.query(reading::db_mapper, sql, *from, *to, *limit);
+            if (type_id)
+                return database.query(reading::db_mapper, sql, *type_id, *limit);
+            if (from)
+                return database.query(reading::db_mapper, sql, *from, *limit);
+            if (to)
+                return database.query(reading::db_mapper, sql, *to, *limit);
+
+            return database.query(reading::db_mapper, sql, *limit);
+        }
+        else {
+            if (type_id && from && to)
+                return database.query(reading::db_mapper, sql, *type_id, *from, *to);
+            if (type_id && from)
+                return database.query(reading::db_mapper, sql, *type_id, *from);
+            if (type_id && to)
+                return database.query(reading::db_mapper, sql, *type_id, *to);
+            if (from && to)
+                return database.query(reading::db_mapper, sql, *from, *to);
+            if (type_id)
+                return database.query(reading::db_mapper, sql, *type_id);
+            if (from)
+                return database.query(reading::db_mapper, sql, *from);
+            if (to)
+                return database.query(reading::db_mapper, sql, *to);
+        }
+
+        return database.query(reading::db_mapper, sql);
     }
     expected_t<std::vector<rule>> repository::get_rules_ordered() {
         return database.query(rule::db_mapper, R"(

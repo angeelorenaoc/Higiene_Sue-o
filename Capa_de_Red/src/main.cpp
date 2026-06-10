@@ -53,19 +53,17 @@ int main() {
 
     logger::setup();
     mqtt::client mqtt(mqtt::setting::HOST, mqtt::setting::PORT);
-    db::sqlite database;
 
-    if (auto res = database.start("sweetdreams.sqlite", "./migrations"); !res) {
+    db::sqlite mqttDB;
+    if (auto res = mqttDB.start("sweetdreams.sqlite", "./migrations"); !res) {
         DB_CRITICAL("Database startup failed: {}", res.error());
         return -1;
     }
-
-    repo::repository rp(database);
-
+    repo::repository mqttRepo(mqttDB);
 
     //mqtt.setMessageCallback([](mqtt::client* self, const mqtt::topic& topic, const mqtt::payload& pl){});
 
-    mqtt.on(reading::ANY, [&rp](auto self, const mqtt::topic& topic, const mqtt::payload& pl){
+    mqtt.on(reading::ANY, [&mqttRepo](auto self, const mqtt::topic& topic, const mqtt::payload& pl){
         RULE_INFO("Message on info topic: {}", topic.last());
         auto parsed = util::parse::to<double>(pl.message);
 
@@ -77,7 +75,7 @@ int main() {
         double value = parsed.value();
         RULE_INFO("Got reading: '{}' -> '{}'", topic, value);
 
-        auto reading = rp.insert_reading(topic.last(), value);
+        auto reading = mqttRepo.insert_reading(topic.last(), value);
         if (!reading) {
             RULE_ERROR("Failed to insert reading for '{}': {}", topic.last(), reading.error());
             return false;
@@ -87,7 +85,7 @@ int main() {
         RULE_INFO("Reading stored: {} -> {} (id={})", topic.last(), value, reading_id);
 
         RULE_INFO("Getting rules for reading");
-        auto rules = rp.get_rules_for_reading(topic.last());
+        auto rules = mqttRepo.get_rules_for_reading(topic.last());
         if (!rules || rules->empty()) {
             RULE_DEBUG("No rules for '{}'", topic.last());
             return true;
@@ -95,7 +93,7 @@ int main() {
 
         for (const auto& rule : rules.value()) {
             RULE_INFO("Getting condition type for rule");
-            auto condition = rp.get_condition_type(rule.id_condition_type);
+            auto condition = mqttRepo.get_condition_type(rule.id_condition_type);
             if (!condition) {
                 RULE_WARN("Unknown condition type id: {}", rule.id_condition_type);
                 continue;
@@ -117,8 +115,7 @@ int main() {
             }
 
             RULE_INFO("Rule {} triggered for '{}' -> {}", rule.id, topic.last(), value);
-            // resolve actuator name, publish command, insert_actuator_log
-            auto actuator = rp.get_actuator_type(rule.id_actuator_type);
+            auto actuator = mqttRepo.get_actuator_type(rule.id_actuator_type);
             if (!actuator) {
                 RULE_WARN("Unknown actuator type id: {}", rule.id_actuator_type);
                 continue;
@@ -128,14 +125,16 @@ int main() {
             self->publish(actuator_topic, rules::cmd::from("1"));
             RULE_INFO("Command sent to '{}'", actuator_topic);
 
-            if (auto res = rp.insert_actuator_log(actuator->name, rule.id, reading_id, "1"); !res) {
+            if (auto res = mqttRepo.insert_actuator_log(actuator->name, rule.id, reading_id, "1"); !res) {
                 RULE_ERROR("Failed to log actuator action for '{}': {}", actuator->name, res.error());
             }
+
+
         }
 
         return true;
     });
-    mqtt.on(control::ANY, [&rp](auto self, const mqtt::topic& topic, const mqtt::payload& pl){
+    mqtt.on(control::ANY, [&mqttRepo](auto self, const mqtt::topic& topic, const mqtt::payload& pl){
         RULE_INFO("Message on control topic: {}", topic.last());
         auto parsed = util::parse::to<int>(pl.message);
 
@@ -170,7 +169,14 @@ int main() {
 
     mqtt.subscribe("#");
 
-    auto http_srv = std::make_unique<http::server>(rp);
+    db::sqlite httpDB;
+    if (auto res = httpDB.start("sweetdreams.sqlite", "./migrations"); !res) {
+        DB_CRITICAL("Database startup failed: {}", res.error());
+        return -1;
+    }
+
+    auto httpRepo = repo::repository{httpDB};
+    auto http_srv = std::make_unique<http::server>(httpRepo);
     std::thread http_thread([&]{ http_srv->start(); });
     http_thread.detach();
 

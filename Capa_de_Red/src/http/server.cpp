@@ -35,17 +35,28 @@ namespace http {
     // ── routes ────────────────────────────────────────────────────────────────────
 
     void server::register_routes() {
+        _srv.set_pre_routing_handler([](const httplib::Request& req, httplib::Response& res) {
+            res.set_header("Access-Control-Allow-Origin", "*");
+            res.set_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+            res.set_header("Access-Control-Allow-Headers", "Content-Type");
+
+            if (req.method == "OPTIONS") {
+                res.status = 204;
+                return httplib::Server::HandlerResponse::Handled;
+            }
+            return httplib::Server::HandlerResponse::Unhandled;
+        });
 
         _srv.Get("/api/ping", [this](const httplib::Request& req, httplib::Response& res) {
             send_json(res, "pong?");
-            HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
+            HTTP_INFO(" | {} | > {} > {} '{}'", res.status, req.remote_addr, req.method, req.path);
         });
 
         _srv.Get("/api/v0/reading-types", [this](const httplib::Request& req, httplib::Response& res) {
             auto result = _repo.get_all("reading_types", repo::reading_type::db_mapper);
             if (!result) {
                 send_error(res, "failed to fetch reading types");
-                HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
+                HTTP_INFO(" | {} | > {} > {} '{}'", res.status, req.remote_addr, req.method, req.path);
                 return;
             }
 
@@ -55,13 +66,13 @@ namespace http {
             }
 
             send_json(res, arr);
-            HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
+            HTTP_INFO(" | {} | > {} > {} '{}'", res.status, req.remote_addr, req.method, req.path);
         });
         _srv.Get("/api/v0/condition-types", [this](const httplib::Request& req, httplib::Response& res) {
             auto result = _repo.get_all("condition_types", repo::condition_type::db_mapper);
             if (!result) {
                 send_error(res, "failed to fetch condition types");
-                HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
+                HTTP_INFO(" | {} | > {} > {} '{}'", res.status, req.remote_addr, req.method, req.path);
             }
 
             json arr = json::array();
@@ -70,13 +81,13 @@ namespace http {
             }
 
             send_json(res, arr);
-            HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
+            HTTP_INFO(" | {} | > {} > {} '{}'", res.status, req.remote_addr, req.method, req.path);
         });
         _srv.Get("/api/v0/actuator-types", [this](const httplib::Request& req, httplib::Response& res) {
             auto result = _repo.get_all("actuator_types", repo::actuator_type::db_mapper);
             if (!result) {
                 send_error(res, "failed to fetch actuator types");
-                HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
+                HTTP_INFO(" | {} | > {} > {} '{}'", res.status, req.remote_addr, req.method, req.path);
                 return;
             }
 
@@ -86,61 +97,66 @@ namespace http {
             }
 
             send_json(res, arr);
-            HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
+            HTTP_INFO(" | {} | > {} > {} '{}'", res.status, req.remote_addr, req.method, req.path);
         });
 
-        // GET /readings?type=<id>&from=<date>&to=<date>
+        // GET /readings?type=<id>&from=<date>&to=<date>&limit=<count>
         _srv.Get("/api/v0/readings", [this](const httplib::Request& req, httplib::Response& res) {
-            std::optional<int>         type_id;
-            std::optional<std::string> from;
-            std::optional<std::string> to;
+            std::optional<int>          type_id;
+            std::optional<std::string>  from;
+            std::optional<std::string>  to;
+            std::optional<int>          limit;
 
             if (req.has_param("type")) {
                 if (auto parse_res = util::parse::to<int>(req.get_param_value("type")); parse_res){
                     type_id = parse_res.value();
                 }
-
+            }
+            if (req.has_param("limit")) {
+                if (auto parse_res = util::parse::to<int>(req.get_param_value("limit")); parse_res){
+                    limit = parse_res.value();
+                }
             }
             if (req.has_param("from")) from = req.get_param_value("from");
             if (req.has_param("to"))   to   = req.get_param_value("to");
 
-            auto result = _repo.get_readings(type_id, from, to);
+            auto result = _repo.get_readings(type_id, from, to, limit);
             if (!result) {
                 send_error(res, "failed to fetch readings");
-                HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
+                HTTP_INFO(" | {} | > {} > {} '{}'", res.status, req.remote_addr, req.method, req.path);
                 return;
             }
 
             json arr = json::array();
             for (auto& r : *result) arr.push_back(r.to_json());
             send_json(res, arr);
-            HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
+            HTTP_INFO(" | {} | > {} > {} '{}'", res.status, req.remote_addr, req.method, req.path);
         });
         _srv.Get("/api/v0/rules", [this](const httplib::Request& req, httplib::Response& res) {
             auto result = _repo.get_rules_ordered();
             if (!result) {
                 send_error(res, "failed to fetch rules");
-                HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
+                HTTP_INFO(" | {} | > {} > {} '{}'", res.status, req.remote_addr, req.method, req.path);
                 return;
             }
 
             json arr = json::array();
             for (auto& r : *result) arr.push_back(r.to_json());
             send_json(res, arr);
-            HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
+            HTTP_INFO(" | {} | > {} > {} '{}'", res.status, req.remote_addr, req.method, req.path);
         });
         _srv.Get("/api/v0/actuator-logs", [this](const httplib::Request& req, httplib::Response& res) {
             auto result = _repo.get_actuator_logs_ordered();
             if (!result) {
                 send_error(res, "failed to fetch rules");
-                HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
+                HTTP_INFO(" | {} | > {} > {} '{}'", res.status, req.remote_addr, req.method, req.path);
                 return;
             }
 
             json arr = json::array();
             for (auto& r : *result) arr.push_back(r.to_json());
             send_json(res, arr);
-            HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
+            HTTP_INFO(" | {} | > {} > {} '{}'", res.status, req.remote_addr, req.method, req.path);
         });
 
         // POST /rules  body: { id_reading_type, id_condition_type, id_actuator_type, condition_value }
@@ -149,14 +165,14 @@ namespace http {
             try { body = json::parse(req.body); }
             catch (...) {
                 send_error(res, "invalid JSON", 400);
-                HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
+                HTTP_INFO(" | {} | > {} > {} '{}'", res.status, req.remote_addr, req.method, req.path);
                 return;
             }
 
             if (!body.contains("id_reading_type")   || !body.contains("id_condition_type") ||
                 !body.contains("id_actuator_type")   || !body.contains("condition_value")) {
                     send_error(res, "missing required fields", 400);
-                    HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
+                    HTTP_INFO(" | {} | > {} > {} '{}'", res.status, req.remote_addr, req.method, req.path);
                     return;
                 }
 
@@ -168,12 +184,12 @@ namespace http {
             );
             if (!result) {
                 send_error(res, "failed to insert rule");
-                HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
+                HTTP_INFO(" | {} | > {} > {} '{}'", res.status, req.remote_addr, req.method, req.path);
                 return;
             }
 
             send_json(res, {{"ok", true}}, 201);
-            HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
+            HTTP_INFO(" | {} | > {} > {} '{}'", res.status, req.remote_addr, req.method, req.path);
         });
 
         // DELETE /rules/:id
@@ -184,16 +200,30 @@ namespace http {
             }
             else {
                 return send_error(res, "invalid id", 400);
-                HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
+                HTTP_INFO(" | {} | > {} > {} '{}'", res.status, req.remote_addr, req.method, req.path);
             }
 
             auto result = _repo.delete_rule(id);
             if (!result) {
                 send_error(res, "failed to delete rule");
-                HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
+                HTTP_INFO(" | {} | > {} > {} '{}'", res.status, req.remote_addr, req.method, req.path);
                 return;
             }
+
             send_json(res, {{"ok", true}});
+            HTTP_INFO(" | {} | > {} > {} '{}'", res.status, req.remote_addr, req.method, req.path);
+        });
+
+        // SSE endpoint
+        _srv.Get("/api/v0/events", [this](const httplib::Request& req, httplib::Response& res) {
+            res.set_header("Access-Control-Allow-Origin", "*");
+            res.set_header("Content-Type", "text/event-stream");
+
+            res.set_chunked_content_provider("text/event-stream",
+            [](size_t, httplib::DataSink&) {  return true; /* keep connection open */ },
+            [](bool){}
+            );
+            HTTP_INFO(" | {} | > {} > {} '{}'", res.status, req.remote_addr, req.method, req.path);
         });
     }
 

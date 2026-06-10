@@ -69,8 +69,7 @@ namespace repo {
             return rows;
         }
 
-        // hpp
-        expected_t<std::vector<reading>> get_readings(std::optional<int> type_id, std::optional<std::string> from, std::optional<std::string> to);
+        expected_t<std::vector<reading>> get_readings(std::optional<int> type_id, std::optional<std::string> from, std::optional<std::string> to, std::optional<int> limit);
         expected_t<std::vector<rule>> get_rules_ordered();
         expected_t<std::vector<actuator_log>> get_actuator_logs_ordered();
         expected_t<> delete_rule(int id);
