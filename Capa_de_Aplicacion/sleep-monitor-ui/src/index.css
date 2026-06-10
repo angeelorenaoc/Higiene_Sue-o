@@ -1,0 +1,62 @@
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #0f1117;
+  color: #e5e7eb;
+  font-family: Inter, sans-serif;
+}
+
+button {
+  cursor: pointer;
+}
+
+.card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.metrics {
+  grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
+}
+
+.page {
+  padding: 2rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid #30363d;
+}
+
+.tabs button {
+  background: transparent;
+  border: none;
+  color: white;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+td,
+th {
+  padding: .75rem;
+  border-bottom: 1px solid #30363d;
+}
