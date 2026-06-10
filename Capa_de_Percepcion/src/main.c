@@ -127,9 +127,10 @@ static void task_dht(void *arg)
 //  BUZZER TASK
 static void task_buzzer(void *arg)
 {
-    alarm_state = subs_alarm();
+    
     while(1)
     {
+        alarm_state = subs_alarm();
         if(alarm_state)
         {
             buzzer_set_frequency(&buzzer, 2000);
@@ -147,18 +148,18 @@ static void task_buzzer(void *arg)
             buzzer_off(&buzzer);
             RTOS_delay(4000);
         }
+        ESP_LOGI(TAG1, "Buzzer state: %d", alarm_state);
     }
 }
  
 //  MOTOR TASK 
 void motor_task(void *pvParameters)
 {
-    motor_state = subs_motor();
     int direction = 1;
-    int past_state = motor_state;
     const uint32_t duty = 1023;  // velocidad media
 
     while (1){
+        motor_state = subs_motor();
 
         if(!motor_state)
         {
@@ -171,21 +172,24 @@ void motor_task(void *pvParameters)
             RTOS_delay(200);
             motor_set_direction(&motor, direction);
             motor_set_speed(&motor, duty);
-            RTOS_delay(500);
+            RTOS_delay(600);
             motor_stop(&motor);
             direction = !direction;
+            motor_state = 0;
         }
     }
-
-    motor_state = 0;
 }
  
 // SUNRISE TASK
 static void task_sunrise(void *arg)
 {
-    alarm_state = subs_alarm();
     while(1){
-        tira_sunrise_from_array(3000, &alarm_state);
+        alarm_state = subs_alarm();
+        if(alarm_state){
+            tira_sunrise_from_array(3000, &alarm_state);
+            tira_off();
+            alarm_state = 0;
+        }
         RTOS_delay(1000);
     }
     alarm_state = 0;
