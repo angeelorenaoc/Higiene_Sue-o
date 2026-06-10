@@ -193,7 +193,7 @@ int main() {
 
     mqtt.on(custom::activate::ALARM, [](auto self, auto topic, const mqtt::payload& pl){
         RULE_INFO("Sending to alarm");
-        self->publish(control::ALARM, rules::cmd::from("1"));
+        self->publish(control::ALARM, rules::cmd::custom("1", ""));
         return true;
     });
     mqtt.on(custom::activate::MOTOR, [](auto self, auto topic, const mqtt::payload& pl){
