@@ -11,6 +11,7 @@ namespace db {
 
         NOT_PRESENT,
         FAILED,
+        INVALID
     };
 
     std::string errorToString(Error e);

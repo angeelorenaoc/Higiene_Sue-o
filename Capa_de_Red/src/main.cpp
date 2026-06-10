@@ -1,3 +1,5 @@
+#include <expected>
+#include <functional>
 #include <thread>
 #include <csignal>
 #include <atomic>
@@ -25,35 +27,46 @@ void onStopSignal(int sig){
 }
 
 
-const mqtt::topic BASE = "sweetdreams";
-const mqtt::topic ESP32 = "esp32";
+db::sqlite::expected_t<std::string> translate(std::string s) {
+    if (s == "temperatura") return "temperature";
+    if (s == "humedad") return "humidity";
+    if (s == "luz") return "light";
+    if (s == "audio") return "noise";
+    if (s == "movimiento") return "motion";
+
+    return std::unexpected(db::Error::INVALID);
+}
 
 namespace reading {
-    const mqtt::topic COMMON = BASE/ESP32/mqtt::topic::INFO;
-    const mqtt::topic TEMP = COMMON/"temperature";
-    const mqtt::topic HUM = COMMON/"humidity";
-    const mqtt::topic LIGHT = COMMON/"light";
-    const mqtt::topic NOISE = COMMON/"noise";
-    const mqtt::topic MOTION = COMMON/"motion";
+    const mqtt::topic COMMON = "sensor";
+
+    const mqtt::topic TEMP = COMMON/"temperatura";
+    const mqtt::topic HUMID = COMMON/"humedad";
+    const mqtt::topic LIGHT = COMMON/"luz";
+    const mqtt::topic SOUND = COMMON/"audio";
+    //const mqtt::topic MOTION = COMMON/"motion";
+    //
     const mqtt::topic ANY = COMMON/mqtt::topic::ANY;
     const mqtt::topic ALL = COMMON/mqtt::topic::ALL;
 }
 namespace control {
-    const mqtt::topic COMMON = BASE/ESP32/mqtt::topic::CONTROL;
-    const mqtt::topic BUZZ = COMMON/"buzzer";
-    const mqtt::topic LED = COMMON/"led";
+    const mqtt::topic COMMON = "actuador";
+
+    const mqtt::topic ALARM = COMMON/"alarm";
     const mqtt::topic MOTOR = COMMON/"motor";
+    //const mqtt::topic LED = COMMON/"led";
+    //
     const mqtt::topic ANY = COMMON/mqtt::topic::ANY;
     const mqtt::topic ALL = COMMON/mqtt::topic::ALL;
 }
 namespace custom {
-    const mqtt::topic ACTIVATE = "activate";
-    const mqtt::topic ACTUADOR = "actuador";
+    namespace activate {
+        const mqtt::topic ACTIVATE = "activate";
 
-    const mqtt::topic T_ALARM = ACTUADOR/"alarm";
-    const mqtt::topic T_MOTOR = ACTUADOR/"motor";
-    const mqtt::topic A_ALARM = ACTIVATE/"alarm";
-    const mqtt::topic A_MOTOR = ACTIVATE/"motor";
+        const mqtt::topic ALARM = ACTIVATE/"alarm";
+        const mqtt::topic MOTOR = ACTIVATE/"motor";
+    }
+
 }
 
 int main() {
@@ -84,7 +97,9 @@ int main() {
         double value = parsed.value();
         RULE_INFO("Got reading: '{}' -> '{}'", topic, value);
 
-        auto reading = mqttRepo.insert_reading(topic.last(), value);
+        auto reading = translate(topic.last()).and_then([&](auto res){
+            return mqttRepo.insert_reading(res, value);
+        });
         if (!reading) {
             RULE_ERROR("Failed to insert reading for '{}': {}", topic.last(), reading.error());
             return false;
@@ -176,14 +191,14 @@ int main() {
         return true;
     });
 
-    mqtt.on(custom::A_ALARM, [](auto self, auto topic, const mqtt::payload& pl){
+    mqtt.on(custom::activate::ALARM, [](auto self, auto topic, const mqtt::payload& pl){
         RULE_INFO("Sending to alarm");
-        self->publish(custom::T_ALARM, rules::cmd::from("1"));
+        self->publish(control::ALARM, rules::cmd::from("1"));
         return true;
     });
-    mqtt.on(custom::A_MOTOR, [](auto self, auto topic, const mqtt::payload& pl){
+    mqtt.on(custom::activate::MOTOR, [](auto self, auto topic, const mqtt::payload& pl){
         RULE_INFO("Sending to alarm");
-        self->publish(custom::T_MOTOR, rules::cmd::from("1"));
+        self->publish(control::MOTOR, rules::cmd::from("1"));
         return true;
     });
 
