@@ -40,6 +40,7 @@ namespace http {
             send_json(res, "pong?");
             HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
         });
+
         _srv.Get("/api/v0/reading-types", [this](const httplib::Request& req, httplib::Response& res) {
             auto result = _repo.get_all("reading_types", repo::reading_type::db_mapper);
             if (!result) {
@@ -56,7 +57,6 @@ namespace http {
             send_json(res, arr);
             HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
         });
-
         _srv.Get("/api/v0/condition-types", [this](const httplib::Request& req, httplib::Response& res) {
             auto result = _repo.get_all("condition_types", repo::condition_type::db_mapper);
             if (!result) {
@@ -72,8 +72,6 @@ namespace http {
             send_json(res, arr);
             HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
         });
-
-        // GET /actuator-types
         _srv.Get("/api/v0/actuator-types", [this](const httplib::Request& req, httplib::Response& res) {
             auto result = _repo.get_all("actuator_types", repo::actuator_type::db_mapper);
             if (!result) {
@@ -118,10 +116,21 @@ namespace http {
             send_json(res, arr);
             HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
         });
-
-        // GET /rules
         _srv.Get("/api/v0/rules", [this](const httplib::Request& req, httplib::Response& res) {
-            auto result = _repo.get_all_rules();
+            auto result = _repo.get_rules_ordered();
+            if (!result) {
+                send_error(res, "failed to fetch rules");
+                HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
+                return;
+            }
+
+            json arr = json::array();
+            for (auto& r : *result) arr.push_back(r.to_json());
+            send_json(res, arr);
+            HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
+        });
+        _srv.Get("/api/v0/actuator-logs", [this](const httplib::Request& req, httplib::Response& res) {
+            auto result = _repo.get_actuator_logs_ordered();
             if (!result) {
                 send_error(res, "failed to fetch rules");
                 HTTP_INFO(" | {} | > {} > GET '{}'", res.status, req.remote_addr, req.path);
@@ -170,7 +179,7 @@ namespace http {
         // DELETE /rules/:id
         _srv.Delete(R"(/api/v0/rules/(\d+))", [this](const httplib::Request& req, httplib::Response& res) {
             int id;
-            if (auto parse_res = util::parse::to<int>(req.get_param_value("type")); parse_res){
+            if (auto parse_res = util::parse::to<int>(req.matches[1].str()); parse_res){
                 id = parse_res.value();
             }
             else {

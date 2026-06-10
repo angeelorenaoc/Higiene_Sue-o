@@ -121,18 +121,16 @@ namespace repo {
             return database.query(mapper, sql, *to);
         return database.query(mapper, sql);
     }
-    expected_t<std::vector<rule>> repository::get_all_rules() {
-        auto mapper = [](sqlite3_stmt* s) -> rule {
-            return {
-                .id = db::sqlite::column_int(s, 0),
-                .id_reading_type = db::sqlite::column_int(s, 1),
-                .id_condition_type = db::sqlite::column_int(s, 2),
-                .id_actuator_type = db::sqlite::column_int(s, 3),
-                .condition_value = db::sqlite::column_double(s, 4),
-                .created_at = db::sqlite::column_text(s, 5)
-            };
-        };
-        return database.query(mapper, R"(
+    expected_t<std::vector<rule>> repository::get_rules_ordered() {
+        return database.query(rule::db_mapper, R"(
+                SELECT id, id_reading_type, id_condition_type, id_actuator_type, condition_value, created_at
+                FROM active_rules
+                ORDER BY created_at DESC
+            )"
+        );
+    }
+    expected_t<std::vector<actuator_log>> repository::get_actuator_logs_ordered() {
+        return database.query(actuator_log::db_mapper, R"(
                 SELECT id, id_reading_type, id_condition_type, id_actuator_type, condition_value, created_at
                 FROM active_rules
                 ORDER BY created_at DESC

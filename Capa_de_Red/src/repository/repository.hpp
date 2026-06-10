@@ -71,7 +71,8 @@ namespace repo {
 
         // hpp
         expected_t<std::vector<reading>> get_readings(std::optional<int> type_id, std::optional<std::string> from, std::optional<std::string> to);
-        expected_t<std::vector<rule>> get_all_rules();
+        expected_t<std::vector<rule>> get_rules_ordered();
+        expected_t<std::vector<actuator_log>> get_actuator_logs_ordered();
         expected_t<> delete_rule(int id);
 
         expected_t<rule>                get_latest_rule(std::string_view type_name);
