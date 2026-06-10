@@ -46,6 +46,15 @@ namespace control {
     const mqtt::topic ANY = COMMON/mqtt::topic::ANY;
     const mqtt::topic ALL = COMMON/mqtt::topic::ALL;
 }
+namespace custom {
+    const mqtt::topic ACTIVATE = "activate";
+    const mqtt::topic ACTUADOR = "actuador";
+
+    const mqtt::topic T_ALARM = ACTUADOR/"alarm";
+    const mqtt::topic T_MOTOR = ACTUADOR/"motor";
+    const mqtt::topic A_ALARM = ACTIVATE/"alarm";
+    const mqtt::topic A_MOTOR = ACTIVATE/"motor";
+}
 
 int main() {
     std::signal(SIGINT, onStopSignal);
@@ -164,6 +173,17 @@ int main() {
 
         RULE_INFO("SIUUUUU from '{}'", topic);
         self->publish("hmmm/esp32/xd", rules::cmd::from("send"));
+        return true;
+    });
+
+    mqtt.on(custom::A_ALARM, [](auto self, auto topic, const mqtt::payload& pl){
+        RULE_INFO("Sending to alarm");
+        self->publish(custom::T_ALARM, rules::cmd::from("1"));
+        return true;
+    });
+    mqtt.on(custom::A_MOTOR, [](auto self, auto topic, const mqtt::payload& pl){
+        RULE_INFO("Sending to alarm");
+        self->publish(custom::T_MOTOR, rules::cmd::from("1"));
         return true;
     });
 
