@@ -3,12 +3,17 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
 
+#include "../config/env.hpp"
+
 namespace logger {
     void setup() {
         //spdlog::set_pattern("[%Y-%m-%d %T] [%^%l%$] [%s:%#] %v"); // [pid:%P | tid:%t]
 
+        config::env.int_or("SPD_CONSOLE_LOG_LEVEL", spdlog::level::trace);
+        config::env.int_or("SPD_FILE_LOG_LEVEL", spdlog::level::trace);
+
         auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-        console_sink->set_level(spdlog::level::debug);
+        console_sink->set_level(spdlog::level::info);
         console_sink->set_pattern("[%d/%m/%Y %T] [%^%l%$] [%s:%#] %v");
 
         auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("./sleep_monitor.log", true);
