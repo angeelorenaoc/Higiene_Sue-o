@@ -204,6 +204,7 @@ int main() {
 
     mqtt.subscribe("#");
 
+
     db::sqlite httpDB;
     if (auto res = httpDB.start("sweetdreams.sqlite", "./migrations"); !res) {
         DB_CRITICAL("Database startup failed: {}", res.error());
@@ -215,7 +216,12 @@ int main() {
     std::thread http_thread([&]{ http_srv->start(); });
     http_thread.detach();
 
-    while (running) std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    //mqtt.publish(custom::activate::ALARM, rules::cmd::from("1"));
+
+    while (running) {
+        mqtt.publish(custom::activate::ALARM, rules::cmd::from("1"));
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
 
     mqtt.disconnect();
     logger::shutdown();
