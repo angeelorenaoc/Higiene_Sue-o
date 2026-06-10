@@ -3,7 +3,7 @@
 
 #include "adc_config.h"
 
-#define RMS_SIZE         20
+#define RMS_SIZE         25
 #define DECIMATION_AUDIO 1
 
 
