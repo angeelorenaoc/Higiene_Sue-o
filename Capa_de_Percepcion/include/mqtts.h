@@ -33,8 +33,8 @@
 #define MQTT_TOPIC_HUMIDITY        "sensor/humedad"
 #define MQTT_TOPIC_AUDIO           "sensor/audio"
 #define MQTT_TOPIC_LIGHT           "sensor/luz"
-#define MQTT_TOPIC_ALARM           "sensor/alarm"
-#define MQTT_TOPIC_MOTOR           "sensor/motor"
+#define MQTT_TOPIC_ALARM           "actuador/alarm"
+#define MQTT_TOPIC_MOTOR           "actuador/motor"
 
 
 // ==========================// PROTOTIPOS DE FUNCIONES// ========================== //
