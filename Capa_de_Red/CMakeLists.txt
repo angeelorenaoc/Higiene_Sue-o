@@ -19,7 +19,9 @@ add_executable(sleep_monitor
     src/db/sqlite_db.cpp
     src/db/errors.cpp
     src/repository/repository.cpp
+    src/repository/models.cpp
     src/rules/rules.cpp
+    src/http/server.cpp
     src/utils/parse.cpp
     src/utils/crypto.cpp
 )

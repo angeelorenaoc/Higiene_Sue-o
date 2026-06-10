@@ -34,4 +34,12 @@
 #define DB_WARN(...) TLOG("DB", WARN, __VA_ARGS__)
 #define DB_ERROR(...) TLOG("DB", ERROR, __VA_ARGS__)
 #define DB_CRITICAL(...) TLOG("DB", CRITICAL, __VA_ARGS__)
+
+#define HTTP_TRACE(...) TLOG("HTTP", TRACE, __VA_ARGS__)
+#define HTTP_DEBUG(...) TLOG("HTTP", DEBUG, __VA_ARGS__)
+#define HTTP_INFO(...) TLOG("HTTP", INFO, __VA_ARGS__)
+#define HTTP_WARN(...) TLOG("HTTP", WARN, __VA_ARGS__)
+#define HTTP_ERROR(...) TLOG("HTTP", ERROR, __VA_ARGS__)
+#define HTTP_CRITICAL(...) TLOG("HTTP", CRITICAL, __VA_ARGS__)
+
 #endif

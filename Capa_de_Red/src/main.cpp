@@ -14,6 +14,7 @@
 #include "db/sqlite_db.hpp"
 #include "repository/models.hpp"
 #include "repository/repository.hpp"
+#include "http/server.hpp"
 #include "utils/parse.hpp"
 
 std::atomic<bool> running{true};
@@ -93,6 +94,7 @@ int main() {
         }
 
         for (const auto& rule : rules.value()) {
+            RULE_INFO("Getting condition type for rule");
             auto condition = rp.get_condition_type(rule.id_condition_type);
             if (!condition) {
                 RULE_WARN("Unknown condition type id: {}", rule.id_condition_type);
@@ -101,6 +103,7 @@ int main() {
 
             bool triggered = false;
             const std::string& cond = condition.value().name;
+            RULE_INFO("Comparing if {} is {} {}", value, cond, rule.condition_value);
             if      (cond == "over")          triggered = value >  rule.condition_value;
             else if (cond == "under")         triggered = value <  rule.condition_value;
             else if (cond == "equal")         triggered = value == rule.condition_value;
@@ -108,7 +111,10 @@ int main() {
             else if (cond == "over_or_equal") triggered = value >= rule.condition_value;
             else if (cond == "under_or_equal")triggered = value <= rule.condition_value;
 
-            if (!triggered) continue;
+            if (!triggered) {
+                RULE_INFO("Value doesnt trigger the rule, skipping");
+                continue;
+            }
 
             RULE_INFO("Rule {} triggered for '{}' -> {}", rule.id, topic.last(), value);
             // resolve actuator name, publish command, insert_actuator_log
@@ -164,7 +170,9 @@ int main() {
 
     mqtt.subscribe("#");
 
-
+    auto http_srv = std::make_unique<http::server>(rp);
+    std::thread http_thread([&]{ http_srv->start(); });
+    http_thread.detach();
 
     while (running) std::this_thread::sleep_for(std::chrono::milliseconds(200));
 

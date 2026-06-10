@@ -9,7 +9,7 @@
 
 namespace repo {
 
-    db::sqlite::expected_t<int> repository::get_type_id(std::string_view table, std::string_view name) {
+    expected_t<int> repository::get_type_id(std::string_view table, std::string_view name) {
         const std::string sql = "SELECT id FROM " + std::string(table) + " WHERE name = ? AND deleted_at IS NULL LIMIT 1;";
 
         auto rows = database.query(
@@ -25,8 +25,8 @@ namespace repo {
         return rows->front();
     }
 
-    db::sqlite::expected_t<int64_t> repository::insert_reading(std::string_view type_name, double value) {
-        return database.transaction([&]() -> db::sqlite::expected_t<int64_t> {
+    expected_t<int64_t> repository::insert_reading(std::string_view type_name, double value) {
+        return database.transaction([&]() -> expected_t<int64_t> {
             auto type_id = get_type_id("reading_types", type_name);
             if (!type_id) return std::unexpected(type_id.error());
 
@@ -40,8 +40,8 @@ namespace repo {
             return database.last_insert_id();
         });
     }
-    db::sqlite::expected_t<> repository::insert_rule(int reading_type_id, int condition_type_id, int actuator_type_id, double condition_value) {
-        return database.transaction([&]() -> db::sqlite::expected_t<> {
+    expected_t<> repository::insert_rule(int reading_type_id, int condition_type_id, int actuator_type_id, double condition_value) {
+        return database.transaction([&]() -> expected_t<> {
             // Find the active rule for same reading + actuator type, if any
             auto existing = database.query(
                 [](sqlite3_stmt* stmt) { return db::sqlite::column_int(stmt, 0); },
@@ -71,8 +71,8 @@ namespace repo {
             );
         });
     }
-    db::sqlite::expected_t<> repository::insert_actuator_log(std::string_view actuator_name, int rule_id, int reading_id, std::string_view command) {
-        return database.transaction([&]() -> db::sqlite::expected_t<> {
+    expected_t<> repository::insert_actuator_log(std::string_view actuator_name, int rule_id, int reading_id, std::string_view command) {
+        return database.transaction([&]() -> expected_t<> {
             auto actuator_id = get_type_id("actuator_types", actuator_name);
             if (!actuator_id) return std::unexpected(actuator_id.error());
 
@@ -83,7 +83,68 @@ namespace repo {
         });
     }
 
-    db::sqlite::expected_t<rule> repository::get_latest_rule(std::string_view type_name) {
+    expected_t<std::vector<reading>> repository::get_readings(std::optional<int> type_id, std::optional<std::string> from, std::optional<std::string> to) {
+        std::string sql = R"(
+                SELECT id, id_reading_type, value, created_at
+                FROM readings
+                WHERE deleted_at IS NULL
+            )";
+
+        if (type_id) sql += " AND id_reading_type = ?";
+        if (from)    sql += " AND created_at >= ?";
+        if (to)      sql += " AND created_at <= ?";
+        sql += " ORDER BY created_at DESC";
+
+        auto mapper = [](sqlite3_stmt* s) -> reading {
+            return {
+                .id = db::sqlite::column_int(s, 0),
+                .id_reading_type = db::sqlite::column_int(s, 1),
+                .value = db::sqlite::column_double(s, 2),
+                .created_at = db::sqlite::column_text(s, 3)
+            };
+        };
+
+        // bind only the params that are set
+        if (type_id && from && to)
+            return database.query(mapper, sql, *type_id, *from, *to);
+        if (type_id && from)
+            return database.query(mapper, sql, *type_id, *from);
+        if (type_id && to)
+            return database.query(mapper, sql, *type_id, *to);
+        if (from && to)
+            return database.query(mapper, sql, *from, *to);
+        if (type_id)
+            return database.query(mapper, sql, *type_id);
+        if (from)
+            return database.query(mapper, sql, *from);
+        if (to)
+            return database.query(mapper, sql, *to);
+        return database.query(mapper, sql);
+    }
+    expected_t<std::vector<rule>> repository::get_all_rules() {
+        auto mapper = [](sqlite3_stmt* s) -> rule {
+            return {
+                .id = db::sqlite::column_int(s, 0),
+                .id_reading_type = db::sqlite::column_int(s, 1),
+                .id_condition_type = db::sqlite::column_int(s, 2),
+                .id_actuator_type = db::sqlite::column_int(s, 3),
+                .condition_value = db::sqlite::column_double(s, 4),
+                .created_at = db::sqlite::column_text(s, 5)
+            };
+        };
+        return database.query(mapper, R"(
+                SELECT id, id_reading_type, id_condition_type, id_actuator_type, condition_value, created_at
+                FROM active_rules
+                ORDER BY created_at DESC
+            )"
+        );
+    }
+
+    expected_t<> repository::delete_rule(int id) {
+        return soft_delete("rules", id);
+    }
+
+    expected_t<rule> repository::get_latest_rule(std::string_view type_name) {
         auto type_id = get_type_id("reading_types", type_name);
         if (!type_id) return std::unexpected(type_id.error());
 
@@ -111,7 +172,7 @@ namespace repo {
         if (!rows || rows->empty()) return std::unexpected(db::Error::NOT_PRESENT);
         return rows->front();
     }
-    db::sqlite::expected_t<std::vector<rule>> repository::get_rules_for_reading(std::string_view type_name) {
+    expected_t<std::vector<rule>> repository::get_rules_for_reading(std::string_view type_name) {
         auto type_id = get_type_id("reading_types", type_name);
         if (!type_id) return std::unexpected(type_id.error());
 
@@ -135,7 +196,7 @@ namespace repo {
         );
     }
 
-    db::sqlite::expected_t<reading_type> repository::get_reading_type(int reading_type_id) {
+    expected_t<reading_type> repository::get_reading_type(int reading_type_id) {
         static std::unordered_map<int, reading_type> cache;
         if (auto it = cache.find(reading_type_id); it != cache.end())
                return it->second;
@@ -155,7 +216,7 @@ namespace repo {
         cache[reading_type_id] = result.value();
         return result.value();
     }
-    db::sqlite::expected_t<condition_type> repository::get_condition_type(int condition_type_id) {
+    expected_t<condition_type> repository::get_condition_type(int condition_type_id) {
         static std::unordered_map<int, condition_type> cache;
         if (auto it = cache.find(condition_type_id); it != cache.end())
                return it->second;
@@ -183,7 +244,7 @@ namespace repo {
             cache[condition_type_id] = rows->front();
             return rows->front();
     }
-    db::sqlite::expected_t<actuator_type> repository::get_actuator_type(int actuator_type_id) {
+    expected_t<actuator_type> repository::get_actuator_type(int actuator_type_id) {
         static std::unordered_map<int, actuator_type> cache;
         if (auto it = cache.find(actuator_type_id); it != cache.end())
                return it->second;
@@ -212,8 +273,8 @@ namespace repo {
             return rows->front();
     }
 
-    db::sqlite::expected_t<> repository::soft_delete(std::string_view table, int id) {
-        return database.transaction([&]() -> db::sqlite::expected_t<> {
+    expected_t<> repository::soft_delete(std::string_view table, int id) {
+        return database.transaction([&]() -> expected_t<> {
             const std::string sql = "UPDATE " + std::string(table) +
                 " SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL;";
 
