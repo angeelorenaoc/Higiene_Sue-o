@@ -1,4 +1,4 @@
-const readingNames = {
+export const readingNames = {
   1: "Temperature",
   2: "Humidity",
   3: "Light",
@@ -6,13 +6,13 @@ const readingNames = {
   5: "Motion"
 };
 
-const actuatorNames = {
+export const actuatorNames = {
   1: "Buzzer",
   2: "LED",
   3: "Motor"
 };
 
-const conditionNames = {
+export const conditionNames = {
   1: ">",
   2: "<",
   3: "=",

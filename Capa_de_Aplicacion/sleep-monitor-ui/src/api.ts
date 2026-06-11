@@ -1,4 +1,4 @@
-const API = "http://localhost:8000/api/v0";
+const API = `${window.location.protocol}//${window.location.hostname}:8000/api/v0`;
 
 export const api = {
   readings: (limit = 100) =>

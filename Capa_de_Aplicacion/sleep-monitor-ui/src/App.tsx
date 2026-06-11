@@ -56,12 +56,6 @@ export default function App() {
 
   useEffect(() => {
     load();
-
-    const timer =
-      setInterval(load, 5000);
-
-    return () =>
-      clearInterval(timer);
   }, []);
 
   return (
@@ -90,6 +84,10 @@ export default function App() {
           }
         >
           Activity
+        </button>
+
+        <button onClick={load}>
+          Refresh
         </button>
 
       </div>

@@ -7,10 +7,20 @@ import {
   ResponsiveContainer
 } from "recharts";
 
+interface ChartPoint {
+  created_at: string;
+  value: number;
+}
+
+interface ReadingChartProps {
+  title: string;
+  data: ChartPoint[];
+}
+
 export default function ReadingChart({
   title,
   data
-}: unknown) {
+}: ReadingChartProps) {
   return (
     <div className="card">
       <h3>{title}</h3>

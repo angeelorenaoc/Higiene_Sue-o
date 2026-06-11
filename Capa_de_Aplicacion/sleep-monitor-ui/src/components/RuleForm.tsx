@@ -1,12 +1,24 @@
 import { useState } from "react";
 import { api } from "../api";
 
+interface Lookup {
+  id: number;
+  name: string;
+}
+
+interface RuleFormProps {
+  readings: Lookup[];
+  conditions: Lookup[];
+  actuators: Lookup[];
+  onCreated: () => void;
+}
+
 export default function RuleForm({
   readings,
   conditions,
   actuators,
   onCreated
-}: any) {
+}: RuleFormProps) {
   const [reading, setReading] = useState(1);
   const [condition, setCondition] = useState(1);
   const [actuator, setActuator] = useState(1);
@@ -32,7 +44,7 @@ export default function RuleForm({
           setReading(Number(e.target.value))
         }
       >
-        {readings.map((r: any) => (
+        {readings.map((r: Lookup) => (
           <option
             key={r.id}
             value={r.id}
@@ -47,7 +59,7 @@ export default function RuleForm({
           setCondition(Number(e.target.value))
         }
       >
-        {conditions.map((c: any) => (
+        {conditions.map((c: Lookup) => (
           <option
             key={c.id}
             value={c.id}
@@ -70,7 +82,7 @@ export default function RuleForm({
           setActuator(Number(e.target.value))
         }
       >
-        {actuators.map((a: unknown) => (
+        {actuators.map((a: Lookup) => (
           <option
             key={a.id}
             value={a.id}
