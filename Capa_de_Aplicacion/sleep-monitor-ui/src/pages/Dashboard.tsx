@@ -23,7 +23,7 @@ export default function Dashboard({
   const thresholds = {
     temperature: 20,
     humidity: 50,
-    noise: 20,
+    noise: 30,
     light: 10
   };
 

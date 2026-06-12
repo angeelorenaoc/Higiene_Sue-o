@@ -42,7 +42,7 @@ export default function App() {
       ct,
       at
     ] = await Promise.all([
-      api.readings(100),
+      api.readings(1000),
       api.rules(),
       api.logs(),
         api.alarms(),
