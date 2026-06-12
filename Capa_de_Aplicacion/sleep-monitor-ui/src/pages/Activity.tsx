@@ -39,9 +39,9 @@ export default function Activity({
     conditionTypes.map((c: Lookup) => [c.id, conditionNameMap[c.name] ?? c.name])
   );
 
-  const ruleMap: Record<number, Rule> = Object.fromEntries(
-    rules.map((r: Rule) => [r.id, r])
-  );
+  //const ruleMap: Record<number, Rule> = Object.fromEntries(
+  //  rules.map((r: Rule) => [r.id, r])
+  //);
 
   const names = Object.fromEntries(
     actuators.map((a: Lookup) => [a.id, actuatorMap[a.name] ?? a.name])

@@ -70,9 +70,11 @@ export default function AlarmForm({
   async function submit() {
     const normalized = normalizeTime(time);
     await api.createAlarm({
+      id: 0,
       id_condition_type: condition,
       id_actuator_type: actuator,
-      condition_time: normalized
+      condition_time: normalized,
+      created_at: ""
     });
 
     onCreated();
