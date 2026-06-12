@@ -8,5 +8,7 @@ namespace db {
             case Error::FAILED: return "operation failed";
             case Error::INVALID: return "provided an invalid value";
         }
+
+        return {"(no convertion provided for this error)"};
     }
 }

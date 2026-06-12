@@ -49,6 +49,7 @@ namespace db {
 
         template<class callable_t>
         auto transaction(callable_t&& queries) -> std::invoke_result_t<callable_t> {
+            DB_TRACE("Starting transaction");
             if (auto beginRes = raw_exec("BEGIN"); !beginRes){
                 return std::unexpected(beginRes.error());
             }
@@ -64,6 +65,7 @@ namespace db {
                 return std::unexpected(commitRes.error());
             }
 
+            DB_TRACE("Finish transaction");
             return result;
         }
 
@@ -100,16 +102,18 @@ namespace db {
         expected_t<> raw_exec(std::string_view query);
         template<class result_t, class mapper_t>
         expected_t<std::vector<result_t>> prep_exec(std::string_view query, mapper_t&& mapper, auto&&... args){
-            DB_DEBUG("Preparing exec");
+            DB_TRACE("Preparing exec");
             sqlite::stmt_guard guard;
 
             if (auto res = prepare(query); !res){
+                DB_TRACE("Prepare failed");
                 return std::unexpected(res.error());
             } else {
                 guard.stmt = res.value();
             }
 
             if(auto res = bind(guard.get(), args...); !res){
+                DB_TRACE("Bind failed");
                 return std::unexpected(res.error());
             }
 
@@ -127,16 +131,17 @@ namespace db {
                 }
                 else if (value == ROW){
                     if constexpr (!std::is_void_v<result_t>) {
+                        DB_TRACE("Prepare failed");
                         readings.push_back(mapper(guard.get()));
                     }
                 }
             }
 
-            DB_DEBUG("Query succesful");
+            DB_TRACE("Query succesful");
             return readings;
         }
         expected_t<> prep_exec_no_return(std::string_view query, auto&&... args){
-            DB_DEBUG("Preparing exec no return");
+            DB_TRACE("Preparing exec no return");
             sqlite::stmt_guard guard;
 
             if (auto res = prepare(query); !res){
@@ -160,7 +165,7 @@ namespace db {
                 }
             }
 
-            DB_DEBUG("Query succesful");
+            DB_TRACE("Query succesful");
             return {};
         }
 
@@ -199,18 +204,6 @@ namespace db {
 
         expected_t<std::string> compute_checksum(const std::filesystem::path& path);
         expected_t<> verify_migrations(const std::filesystem::path& path);
-
-        /// Others
-        //friend expected_t<> create_schema(sqlite& db);
-
-        //friend expected_t<> insert_reading(sqlite& db, const std::string& type, double value);
-        //friend expected_t<> insert_config(sqlite& db, const std::string& reading_type, const std::string& threshold_type, double value);
-        //friend expected_t<config> get_latest_config(sqlite& db, const std::string& reading_type, const std::string& threshold_type);
-        //friend expected_t<std::vector<reading>> fetch_active_readings(sqlite& db);
-        //friend expected_t<> insert_actuator_log(sqlite& db, const std::string& actuator, const std::string& action, int config_id, int rule_id);
-        //friend expected_t<std::vector<actuator_log>> fetch_active_actuator_logs(sqlite& db);
-        //friend expected_t<> soft_delete(sqlite& db, const std::string& table, int id);
-
     };
 }
 

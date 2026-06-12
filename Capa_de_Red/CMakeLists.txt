@@ -15,13 +15,16 @@ add_subdirectory(src/vendor/spdlog)
 add_executable(sleep_monitor
     src/main.cpp
     src/logger/setup.cpp
-    src/mqtt/client.cpp
     src/db/sqlite_db.cpp
     src/db/errors.cpp
+    src/db/setup.cpp
+    src/mqtt/client.cpp
+    src/mqtt/setup.cpp
+    src/http/server.cpp
+    src/http/setup.cpp
     src/repository/repository.cpp
     src/repository/models.cpp
-    src/rules/rules.cpp
-    src/http/server.cpp
+    src/datetime/datetime.cpp
     src/utils/parse.cpp
     src/utils/crypto.cpp
 )

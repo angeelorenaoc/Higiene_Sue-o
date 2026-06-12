@@ -106,6 +106,24 @@ namespace config {
             catch (...) { return fallback; }
         }
 
+        template<class enum_t>
+        requires std::is_enum_v<enum_t>
+        enum_t as_enum(const std::string& key) const {
+            auto value = get(key);
+            using underlying_t = std::underlying_type_t<enum_t>;
+            try { return static_cast<enum_t>(std::stoi(value)); }
+            catch (...) { throw std::runtime_error("dotenv: cannot parse as int: " + key + "=" + value); }
+        }
+        template<class enum_t>
+        requires std::is_enum_v<enum_t>
+        enum_t enum_or(const std::string& key, enum_t v) const {
+            if (get(key).empty()){
+                return v;
+            }
+
+            return as_enum<enum_t>(key);
+        }
+
     private:
         // ------------------------------------------------------------------ //
         //  Parsing helpers                                                     //

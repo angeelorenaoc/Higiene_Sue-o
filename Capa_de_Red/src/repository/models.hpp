@@ -6,6 +6,8 @@
 #include <sqlite3.h>
 #include <nlohmann/json.hpp>
 
+#include "../datetime/datetime.hpp"
+
 namespace repo {
     struct reading_type {
         int id;
@@ -52,6 +54,17 @@ namespace repo {
         std::string created_at;
 
         static rule db_mapper(sqlite3_stmt* s);
+        nlohmann::json to_json();
+    };
+
+    struct time_rule {
+        int id;
+        int id_condition_type;
+        int id_actuator_type;
+        dt::time condition_time;
+        std::string created_at;
+
+        static time_rule db_mapper(sqlite3_stmt* s);
         nlohmann::json to_json();
     };
 

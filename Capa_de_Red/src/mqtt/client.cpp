@@ -28,7 +28,7 @@ namespace mqtt {
             return;
         }
         mosquitto_log_callback_set(mosq, [](mosquitto*, void*, int level, const char* str) {
-            MQTT_DEBUG("[{}]: {}\n", level, str);
+            MQTT_TRACE("[{}]: {}\n", level, str);
         });
 
         if (setting::USE_TLS) {
@@ -171,22 +171,22 @@ namespace mqtt {
             return;
         }
 
-        MQTT_DEBUG("On topic '{}': {}", msg->topic, payload);
+        MQTT_TRACE("On topic '{}': {}", msg->topic, payload);
         self->cb(self, msg->topic, pl);
 
 
         for (const auto&[topic, topicCallbacks] : self->topicCBs){
             bool match = false;
             int rc = mosquitto_topic_matches_sub(topic.c_str(), msg->topic, &match);
-            MQTT_DEBUG("Comparing '{}' == '{}'", topic.c_str(), msg->topic);
-            MQTT_DEBUG("Topic compare result: {}", match);
+            MQTT_TRACE("Comparing '{}' == '{}'", topic.c_str(), msg->topic);
+            MQTT_TRACE("Topic compare result: {}", match);
 
             if (rc != MOSQ_ERR_SUCCESS){
                 MQTT_WARN("Invalid input parameters, skipping");
                 continue;
             }
             if (!match){
-                MQTT_DEBUG("Topics didnt match: {} != {}", topic, msg->topic);
+                MQTT_TRACE("Topics didnt match: {} != {}", topic, msg->topic);
                 continue;
             }
 
@@ -208,6 +208,7 @@ namespace mqtt {
         this->cb = cb;
     }
     void client::on(const topic& topic, const message_callback_t& cb){
+        this->subscribe(topic);
         topicCBs[topic].push_back(cb);
     }
 }

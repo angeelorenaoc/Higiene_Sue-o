@@ -1,6 +1,7 @@
 #include "parse.hpp"
 
 #include <string>
+#include <string_view>
 #include <vector>
 #include <ranges>
 
@@ -14,7 +15,8 @@ namespace util::parse {
         }
     }
 
-    std::vector<std::string> split(std::string text, char separator){
+
+    std::vector<std::string> split(std::string_view text, char separator){
         std::vector<std::string> parts;
         for (auto &&part : text | std::ranges::views::split(separator)) {
             parts.emplace_back(part.begin(), part.end());

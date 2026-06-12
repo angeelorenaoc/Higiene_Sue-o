@@ -70,6 +70,17 @@ namespace repo {
             );
         });
     }
+    expected_t<> repository::insert_time_rule(int condition_type_id, int actuator_type_id, std::string_view condition_time) {
+        return database.transaction([&]() -> expected_t<> {
+            return database.exec(
+                R"(
+                    INSERT INTO time_rules (id_condition_type, id_actuator_type, condition_time)
+                    VALUES (?, ?, ?);
+                )",
+                condition_type_id, actuator_type_id, condition_time
+            );
+        });
+    }
     expected_t<> repository::insert_actuator_log(std::string_view actuator_name, int rule_id, int reading_id, std::string_view command) {
         return database.transaction([&]() -> expected_t<> {
             auto actuator_id = get_type_id("actuator_types", actuator_name);
@@ -158,17 +169,7 @@ namespace repo {
         auto type_id = get_type_id("reading_types", type_name);
         if (!type_id) return std::unexpected(type_id.error());
 
-        auto rows = database.query(
-            [](sqlite3_stmt* stmt) {
-                return rule{
-                    .id = db::sqlite::column_int(stmt, 0),
-                    .id_reading_type = db::sqlite::column_int(stmt, 1),
-                    .id_condition_type = db::sqlite::column_int(stmt, 2),
-                    .id_actuator_type = db::sqlite::column_int(stmt, 3),
-                    .condition_value = db::sqlite::column_double(stmt, 4),
-                    .created_at = db::sqlite::column_text(stmt, 5)
-                };
-            },
+        auto rows = database.query(rule::db_mapper,
             R"(
                 SELECT id, id_reading_type, id_condition_type, id_actuator_type, condition_value, created_at
                 FROM active_rules
@@ -186,17 +187,7 @@ namespace repo {
         auto type_id = get_type_id("reading_types", type_name);
         if (!type_id) return std::unexpected(type_id.error());
 
-        return database.query(
-            [](sqlite3_stmt* stmt) {
-                return rule{
-                    .id = db::sqlite::column_int(stmt, 0),
-                    .id_reading_type = db::sqlite::column_int(stmt, 1),
-                    .id_condition_type = db::sqlite::column_int(stmt, 2),
-                    .id_actuator_type = db::sqlite::column_int(stmt, 3),
-                    .condition_value = db::sqlite::column_double(stmt, 4),
-                    .created_at = db::sqlite::column_text(stmt, 5)
-                };
-            },
+        return database.query(rule::db_mapper,
             R"(
                 SELECT id, id_reading_type, id_condition_type, id_actuator_type, condition_value, created_at
                 FROM active_rules
@@ -205,21 +196,24 @@ namespace repo {
             type_id.value()
         );
     }
+    expected_t<std::vector<time_rule>> repository::get_time_rules_ordered() {
+        return database.query(time_rule::db_mapper,
+            R"(
+                SELECT id, id_condition_type, id_actuator_type, condition_time, created_at
+                FROM time_rules
+                WHERE deleted_at IS NULL
+                ORDER BY created_at DESC;
+            )"
+        );
+    }
 
     expected_t<reading_type> repository::get_reading_type(int reading_type_id) {
         static std::unordered_map<int, reading_type> cache;
-        if (auto it = cache.find(reading_type_id); it != cache.end())
+        if (auto it = cache.find(reading_type_id); it != cache.end()){
                return it->second;
+        }
 
-        auto mapper = [](sqlite3_stmt* stmt) {
-            return reading_type{
-                .id = db::sqlite::column_int(stmt, 0),
-                .name = db::sqlite::column_text(stmt, 1),
-                .created_at = db::sqlite::column_text(stmt, 2),
-            };
-        };
-
-        auto result = get_by_id(reading_type_id, "reading_types", mapper);
+        auto result = get_by_id(reading_type_id, "reading_types", reading_type::db_mapper);
 
         if (!result) return result;
 
@@ -231,15 +225,7 @@ namespace repo {
         if (auto it = cache.find(condition_type_id); it != cache.end())
                return it->second;
 
-        auto mapper = [](sqlite3_stmt* stmt) {
-            return condition_type{
-                .id = db::sqlite::column_int(stmt, 0),
-                .name = db::sqlite::column_text(stmt, 1),
-                .created_at = db::sqlite::column_text(stmt, 2),
-            };
-        };
-
-        auto rows = database.query(mapper,
+        auto rows = database.query(condition_type::db_mapper,
                 R"(
                     SELECT id, name
                     FROM condition_types
@@ -259,15 +245,7 @@ namespace repo {
         if (auto it = cache.find(actuator_type_id); it != cache.end())
                return it->second;
 
-        auto mapper = [](sqlite3_stmt* stmt) {
-            return actuator_type{
-                .id = db::sqlite::column_int(stmt, 0),
-                .name = db::sqlite::column_text(stmt, 1),
-                .created_at = db::sqlite::column_text(stmt, 2),
-            };
-        };
-
-        auto rows = database.query(mapper,
+        auto rows = database.query(actuator_type::db_mapper,
                 R"(
                     SELECT id, name
                     FROM actuator_types

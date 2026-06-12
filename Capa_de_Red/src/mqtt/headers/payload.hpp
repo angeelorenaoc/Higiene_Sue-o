@@ -21,7 +21,7 @@ namespace mqtt {
             return prefix + ":" + message;
         }
         static payload unmarshal(std::string payload){
-            auto pos = payload.find(":");
+            auto pos = payload.find("¬");
             if (pos == payload.npos) {
                 return {{}, payload, false};
                 //MQTT_ERROR("Could not unmarshal message");
@@ -29,7 +29,7 @@ namespace mqtt {
             }
 
             auto prefix = payload.substr(0, pos);
-            auto msg = payload.substr(pos + 1);
+            auto msg = payload.substr(pos + 2);
             return {prefix, msg, false};
         }
     };

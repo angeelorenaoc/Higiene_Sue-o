@@ -1,12 +1,15 @@
 #pragma once
-#include <vector>
+#include <string_view>
 #ifndef PARSE_HPP
 #define PARSE_HPP
 
+#include <vector>
 #include <expected>
 #include <string>
+#include <string_view>
 #include <charconv>
 #include <spdlog/fmt/fmt.h>
+
 #include "constrains.hpp"
 
 namespace util::parse {
@@ -43,7 +46,7 @@ namespace util::parse {
         return value;
     }
 
-    std::vector<std::string> split(std::string text, char separator);
+    std::vector<std::string> split(std::string_view text, char separator);
 }
 
 template <>

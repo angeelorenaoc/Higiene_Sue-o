@@ -86,6 +86,25 @@ namespace repo {
         };
     }
 
+    time_rule time_rule::db_mapper(sqlite3_stmt* s){
+            return {
+                .id = db::sqlite::column_int(s, 0),
+                .id_condition_type = db::sqlite::column_int(s, 1),
+                .id_actuator_type = db::sqlite::column_int(s, 2),
+                .condition_time = dt::time::from(db::sqlite::column_text(s, 3)).value(),
+                .created_at = db::sqlite::column_text(s, 4)
+            };
+    }
+    nlohmann::json time_rule::to_json() {
+        return {
+            {"id",                id},
+            {"id_condition_type", id_condition_type},
+            {"id_actuator_type",  id_actuator_type},
+            {"condition_time",    condition_time.to_string()},
+            {"created_at",        created_at}
+        };
+    }
+
     actuator_log actuator_log::db_mapper(sqlite3_stmt* s){
             return {
                 .id = db::sqlite::column_int(s, 0),
