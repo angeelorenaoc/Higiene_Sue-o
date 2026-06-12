@@ -5,6 +5,7 @@ import { api } from "./api";
 import Dashboard from "./pages/Dashboard";
 import Rules from "./pages/Rules";
 import Activity from "./pages/Activity";
+import Alarms from "./pages/Alarms";
 
 export default function App() {
   const [tab, setTab] =
@@ -17,6 +18,9 @@ export default function App() {
     useState([]);
 
   const [logs, setLogs] =
+    useState([]);
+
+  const [alarms, setAlarms] =
     useState([]);
 
   const [readingTypes,
@@ -33,6 +37,7 @@ export default function App() {
       readings,
       rules,
       logs,
+      alarms,
       rt,
       ct,
       at
@@ -40,6 +45,7 @@ export default function App() {
       api.readings(100),
       api.rules(),
       api.logs(),
+        api.alarms(),
       api.readingTypes(),
       api.conditionTypes(),
       api.actuatorTypes()
@@ -48,6 +54,7 @@ export default function App() {
     setReadings(readings);
     setRules(rules);
     setLogs(logs);
+      setAlarms(alarms);
 
     setReadingTypes(rt);
     setConditionTypes(ct);
@@ -59,43 +66,47 @@ export default function App() {
   }, []);
 
   return (
-    <>
+    <div className="site">
       <div className="tabs">
 
         <button
-          onClick={() =>
-            setTab("dashboard")
-          }
+          className={tab === "dashboard" ? "active" : ""}
+          onClick={() => setTab("dashboard")}
         >
-          Dashboard
+          Panel
         </button>
 
         <button
-          onClick={() =>
-            setTab("rules")
-          }
+          className={tab === "rules" ? "active" : ""}
+          onClick={() => setTab("rules")}
         >
-          Rules
+          Reglas
         </button>
 
         <button
-          onClick={() =>
-            setTab("activity")
-          }
+          className={tab === "alarms" ? "active" : ""}
+          onClick={() => setTab("alarms")}
         >
-          Activity
+          Alarmas
         </button>
 
-        <button onClick={load}>
-          Refresh
+        <button
+          className={tab === "activity" ? "active" : ""}
+          onClick={() => setTab("activity")}
+        >
+          Actividad
+        </button>
+
+        <div className="spacer" />
+
+        <button onClick={load} className="btn">
+          Actualizar
         </button>
 
       </div>
 
       {tab === "dashboard" && (
-        <Dashboard
-          readings={readings}
-        />
+        <Dashboard readings={readings} />
       )}
 
       {tab === "rules" && (
@@ -108,12 +119,25 @@ export default function App() {
         />
       )}
 
+      {tab === "alarms" && (
+        <Alarms
+          alarms={alarms}
+          conditions={conditionTypes}
+          actuators={actuatorTypes}
+          refresh={load}
+        />
+      )}
+
       {tab === "activity" && (
         <Activity
           logs={logs}
           actuators={actuatorTypes}
+          readings={readings}
+          rules={rules}
+          readingTypes={readingTypes}
+          conditionTypes={conditionTypes}
         />
       )}
-    </>
+    </div>
   );
 }

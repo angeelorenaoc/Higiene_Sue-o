@@ -21,6 +21,11 @@ export default function ReadingChart({
   title,
   data
 }: ReadingChartProps) {
+  const sorted = [...data].sort((a, b) =>
+    new Date(a.created_at).getTime() -
+    new Date(b.created_at).getTime()
+  );
+
   return (
     <div className="card">
       <h3>{title}</h3>
@@ -29,7 +34,7 @@ export default function ReadingChart({
         width="100%"
         height={300}
       >
-        <LineChart data={data}>
+        <LineChart data={sorted}>
           <XAxis dataKey="created_at" />
           <YAxis />
           <Tooltip />

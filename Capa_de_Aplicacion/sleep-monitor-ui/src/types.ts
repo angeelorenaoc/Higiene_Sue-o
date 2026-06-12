@@ -13,6 +13,13 @@ export interface Rule {
   condition_value: number;
   created_at: string;
 }
+export interface Alarm {
+  id: number;
+  id_condition_type: number;
+  id_actuator_type: number;
+  condition_time: string;
+  created_at: string;
+}
 
 export interface ActuatorLog {
   id: number;

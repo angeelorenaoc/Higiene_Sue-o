@@ -1,16 +1,13 @@
-import RuleForm from "../components/RuleForm";
+import AlarmForm from "../components/AlarmForm";
 import { api } from "../api";
-import type { Lookup, Rule } from "../types";
 
-export default function Rules(props: any) {
-  const { rules, readings, conditions, actuators, refresh } = props;
-
-  const readingMap: Record<string, string> = {
-    temperature: "Temperatura",
-    humidity: "Humedad",
-    light: "Luz",
-    noise: "Ruido"
-  };
+export default function Alarms(props: any) {
+  const {
+    alarms,
+    conditions,
+    actuators,
+    refresh
+  } = props;
 
   const conditionMap: Record<string, string> = {
     over: "Mayor que",
@@ -27,25 +24,19 @@ export default function Rules(props: any) {
     motor: "Ventanas"
   };
 
-  const rt = Object.fromEntries(
-    readings.map((x: Lookup) => [x.id, readingMap[x.name] ?? x.name])
-  );
-
   const ct = Object.fromEntries(
-    conditions.map((x: Lookup) => [x.id, conditionMap[x.name] ?? x.name])
+    conditions.map((x: any) => [x.id, conditionMap[x.name] ?? x.name])
   );
 
   const at = Object.fromEntries(
-    actuators.map((x: Lookup) => [x.id, actuatorMap[x.name] ?? x.name])
+    actuators.map((x: any) => [x.id, actuatorMap[x.name] ?? x.name])
   );
 
   return (
     <div className="page">
-
       <div className="cols">
         <div>
-          <RuleForm
-            readings={readings}
+          <AlarmForm
             conditions={conditions}
             actuators={actuators}
             onCreated={refresh}
@@ -55,8 +46,8 @@ export default function Rules(props: any) {
         <div className="card">
           <div className="card-header">
             <div>
-              <strong>Reglas</strong>
-              <div className="muted">Reglas de automatización configuradas</div>
+              <strong>Alarmas</strong>
+              <div className="muted">Acciones programadas por tiempo</div>
             </div>
             <div />
           </div>
@@ -64,26 +55,24 @@ export default function Rules(props: any) {
           <table>
             <thead>
               <tr>
-                <th>Lectura</th>
                 <th>Condición</th>
-                <th>Valor</th>
+                <th>Hora</th>
                 <th>Actuador</th>
                 <th />
               </tr>
             </thead>
 
             <tbody>
-              {rules.map((r: Rule) => (
-                <tr key={r.id}>
-                  <td>{rt[r.id_reading_type]}</td>
-                  <td>{ct[r.id_condition_type]}</td>
-                  <td>{r.condition_value}</td>
-                  <td>{at[r.id_actuator_type]}</td>
+              {alarms.map((a: any) => (
+                <tr key={a.id}>
+                  <td>{ct[a.id_condition_type]}</td>
+                  <td>{a.condition_time}</td>
+                  <td>{at[a.id_actuator_type]}</td>
                   <td>
                     <button
                       className="btn danger"
                       onClick={async () => {
-                        await api.deleteRule(r.id);
+                        await api.deleteAlarm(a.id);
                         refresh();
                       }}
                     >
