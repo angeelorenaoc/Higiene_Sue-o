@@ -6,18 +6,24 @@ El proyecto se trata de una plataforma distribuida de IoT para el monitoreo de l
 
 ## Arquitectura
 
-ESP32
- │
- ▼
-MQTT Broker
- │
- ▼
-Raspberry Pi Backend
- ├── MQTT Layer
- ├── Repository
- ├── SQLite
- ├── HTTP API
- └── Rules Engine
- │
- ▼
-React Dashboard
+```mermaid
+flowchart TD
+    ESP32[ESP32] <-->|Telemetry / Commands| MQTT[MQTT Broker]
+
+    subgraph Backend["Raspberry Pi Backend"]
+        MQTTLayer[MQTT Layer]
+        Repository[Repository]
+        SQLite[(SQLite)]
+        API[HTTP API]
+        Rules[Rules Engine]
+
+        MQTTLayer --> Repository
+        Repository <--> SQLite
+        MQTTLayer --> Rules
+        Rules --> MQTTLayer
+        API <--> Repository
+    end
+
+    MQTT <--> MQTTLayer
+    Dashboard[React Dashboard] <-->|REST API| API
+```
